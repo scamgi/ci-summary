@@ -1,1 +1,125 @@
-bla bla bla.
+\chapter{Performance Bounds}
+\label{chap:performance_bounds}
+
+While detailed queueing network models can provide precise performance predictions, they can be complex to parameterize and solve. This chapter, based on the lectures of Prof. Danilo Ardagna, introduces \textbf{Bounding Analysis}, a powerful and lightweight technique that provides valuable insights into system performance by establishing best-case and worst-case boundaries.
+
+\section{Introduction to Bounding Analysis}
+
+Bounding analysis is a modeling technique used to determine \textbf{asymptotic bounds} (upper and lower bounds) on a system's key performance indices, namely throughput ($X$) and response time ($R$). It serves as an excellent "first-cut" modeling approach for several reasons:
+\begin{itemize}
+    \item It provides valuable insight into the \textbf{primary factors} affecting system performance.
+    \item The bounds can be computed \textbf{quickly and easily}, often by hand.
+    \item It allows for the rapid comparison of several alternative system configurations.
+    \item Most importantly, it highlights and quantifies the critical influence of the \textbf{system bottleneck}.
+\end{itemize}
+
+\subsection{The Bottleneck Resource}
+In any system composed of multiple resources, there is one component that limits the overall performance. This is known as the \textbf{bottleneck}.
+\begin{description}
+    \item[Definition:] The bottleneck is the resource with the greatest \textbf{service demand}. The service demand for resource $k$, denoted $D_k$, is the total service time a job requires from that resource. The bottleneck's service demand is $D_{max} = \max_k \{D_k\}$.
+    \item[Importance:] The bottleneck resource is the first to become saturated (i.e., reach 100\% utilization) as the system load increases. It fundamentally constrains the maximum achievable throughput of the entire system. Improving the performance of the bottleneck resource will improve the system's peak performance; improving any other resource will not.
+\end{description}
+
+\subsection{Notation}
+For our analysis, we will use the following parameters:
+\begin{itemize}
+    \item $K$: The number of service centers in the system.
+    \item $D_k$: The service demand at service center $k$.
+    \item $D$: The sum of the service demands at all centers, $D = \sum_{k=1}^{K} D_k$. This represents the total service time for a job if there were no queueing.
+    \item $D_{max}$: The largest service demand at any single center (the bottleneck).
+    \item $Z$: The average think time, for interactive (closed) systems.
+    \item $N$: The number of users or jobs in a closed system.
+    \item $\lambda$: The arrival rate of jobs in an open system.
+\end{itemize}
+We will derive bounds on the system throughput, $X$, and the system response time, $R$.
+
+\section{Bounding Analysis of Open Models}
+In open models, jobs arrive from an external source at a rate $\lambda$. The system's performance depends on this arrival rate.
+
+\subsection{Throughput Bound}
+The throughput of the system, $X(\lambda)$, is limited by the arrival rate (it cannot process more jobs than arrive) and by the capacity of its bottleneck. The utilization of the bottleneck resource is $U_{max} = X(\lambda) \cdot D_{max}$. Since utilization cannot exceed 100\%, we have $X(\lambda) \cdot D_{max} \le 1$. This implies that the maximum possible arrival rate the system can sustain before it \textbf{saturates} is $\lambda_{sat} = 1 / D_{max}$.
+\begin{equation}
+    X(\lambda) \le \frac{1}{D_{max}}
+\end{equation}
+
+\subsection{Response Time Bound}
+The best possible (optimistic) response time occurs when a job experiences no queueing delays. In this scenario, the response time is simply the sum of the service demands at all the resources it visits.
+\begin{equation}
+    R(\lambda) \ge D
+\end{equation}
+For open models, there is no pessimistic (upper) bound on response time. By sending jobs in large batches, the queueing delay for jobs at the back of the batch can be made arbitrarily long, regardless of how low the average arrival rate $\lambda$ is.
+
+% \begin{figure}[h!]
+%     \centering
+%     \includegraphics[width=0.7\textwidth]{page_16.png}
+%     \caption{Feasible performance region for an open model, defined by the asymptotic bounds on throughput and response time.}
+%     \label{fig:open_model_bounds}
+% \end{figure}
+
+\section{Bounding Analysis of Closed Models}
+In closed models, a fixed population of $N$ users circulates within the system. Performance is analyzed as a function of $N$. The bounds are derived by considering two extreme conditions: light load (low $N$) and heavy load (high $N$).
+
+\subsection{Throughput Bounds $X(N)$}
+\begin{description}
+    \item[Light Load (Optimistic Upper Bound):] When there are very few users ($N$ is small), there is minimal queueing. The response time is approximately $D$. Using the Interactive Response Time Law ($X = N/(R+Z)$), the throughput is limited by the users themselves.
+    \begin{equation*}
+        X(N) \le \frac{N}{D+Z}
+    \end{equation*}
+    \item[Heavy Load (Pessimistic Upper Bound):] As $N$ becomes large, the system's throughput is no longer limited by the users but by the bottleneck resource, which becomes saturated.
+    \begin{equation*}
+        X(N) \le \frac{1}{D_{max}}
+    \end{equation*}
+    \item[Pessimistic Lower Bound:] The worst-case scenario occurs when a job always arrives at a resource to find all other $N-1$ jobs queued in front of it. This yields the lowest possible throughput.
+    \begin{equation*}
+         X(N) \ge \frac{N}{ND + Z}
+    \end{equation*}
+\end{description}
+Combining these gives the complete bounds for throughput:
+\begin{equation}
+    \frac{N}{ND + Z} \le X(N) \le \min \left( \frac{N}{D + Z}, \frac{1}{D_{max}} \right)
+\end{equation}
+
+\subsection{Response Time Bounds $R(N)$}
+The bounds for response time can be derived directly from the throughput bounds using Little's Law ($R = N/X - Z$).
+\begin{equation}
+    \max(D, N \cdot D_{max} - Z) \le R(N) \le N \cdot D - Z 
+\end{equation}
+Note: The slides show $R(N) \le ND$. This is an absolute upper bound assuming a job finds all other jobs queued at every device. $R(N) \le N \cdot D - Z$ is a slightly tighter bound derived from the throughput bounds. Both are valid upper bounds.
+
+% \begin{figure}[h!]
+%     \centering
+%     \includegraphics[width=\textwidth]{page_29.png}
+%     \caption{Feasible performance regions for a closed model, showing the asymptotic bounds for throughput X(N) and response time R(N) as a function of the number of users N.}
+%     \label{fig:closed_model_bounds}
+% \end{figure}
+
+\section{Example: What-If Analysis}
+Bounding analysis is extremely useful for evaluating system upgrades. Consider a system with a CPU (resource 1) and two disks (resources 2 and 3).
+
+\textbf{Original System Parameters:}
+\begin{itemize}
+    \item Service Demands: $D_1=2.0s, D_2=0.5s, D_3=3.0s$
+    \item Think Time: $Z = 15s$
+\end{itemize}
+From this, we find $D = D_1+D_2+D_3 = 5.5s$ and the bottleneck is Disk 3 with $D_{max}=3.0s$. The performance bounds are:
+\begin{itemize}
+    \item $X(N) \le \min\left(\frac{N}{5.5+15}, \frac{1}{3.0}\right)$
+    \item $R(N) \ge \max(5.5, N \cdot 3.0 - 15)$
+\end{itemize}
+
+We now analyze four possible upgrade scenarios:
+\begin{description}
+    \item[Alternative 1: Faster CPU.] $D_1$ becomes 1.0s. The new $D=4.5s$, but $D_{max}$ is unchanged at 3.0s. The bounds show almost no improvement in maximum throughput, as the CPU was not the bottleneck.
+    \item[Alternative 2: Balance Disk Loads.] Visits are shifted between disks 2 and 3 to balance their demands. The new demands become $D_2=D_3=2.06s$. Now, the bottleneck is $D_{max}=2.06s$. This significantly improves the maximum throughput bound from $1/3 \approx 0.33$ to $1/2.06 \approx 0.48$. This is a major improvement.
+    \item[Alternative 3: Add a Second Fast Disk.] The load on the bottleneck disk (3) is split with a new, identical disk (4). The new demands are $D_1=2.0s, D_2=0.5s, D_3=1.5s, D_4=1.5s$. The bottleneck is now the CPU, with $D_{max}=2.0s$. This also provides a significant performance improvement.
+    \item[Alternative 4: All Changes Together.] A faster CPU and a balanced load across three disks. The demands become $D_1=1.0s, D_2=1.27s, D_3=1.27s, D_4=1.27s$. The bottleneck is now one of the disks, with $D_{max}=1.27s$. This scenario gives the best performance, with a maximum throughput bound of $1/1.27 \approx 0.79$.
+\end{description}
+
+% \begin{figure}[h!]
+%     \centering
+%     \includegraphics[width=\textwidth]{page_43.png}
+%     \caption{Comparison of the throughput bounds for the original system and all four upgrade scenarios. Scenario 4 clearly provides the highest performance potential.}
+%     \label{fig:whatif_comparison}
+% \end{figure}
+
+This example demonstrates how bounding analysis provides a quick and effective method for identifying system bottlenecks and predicting the impact of potential upgrades, guiding engineers toward the most cost-effective performance improvements.
