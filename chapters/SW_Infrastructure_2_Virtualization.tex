@@ -1,1 +1,101 @@
-bla bla bla.
+\chapter{Software Infrastructures: From Datacenter to Cloud via Virtualization}
+\label{chap:sw_infra_virtualization}
+
+This chapter provides a foundational overview of the software infrastructures that power modern cloud computing. The central theme is \textbf{Virtualization}, the core technology that enables the abstraction of physical hardware and facilitates the transition from traditional, static datacenters to dynamic, on-demand cloud services. We will explore the different levels and types of virtualization, from hardware-level Virtual Machines to OS-level Containers, and conclude with an introduction to the orchestration platforms that manage these environments at scale.
+
+\section{Computer Architecture and the Concept of a Machine}
+
+To understand virtualization, we must first revisit the layered model of computer architecture. A "machine" is an execution environment capable of running a program. The set of instructions it can execute is defined by its architecture, which is structured in hierarchical levels.
+
+% \begin{figure}[h!]
+%     \centering
+%     \includegraphics[width=0.8\textwidth]{page_8.png}
+%     \caption{The layered execution model, highlighting the Instruction Set Architecture (ISA) as the boundary between hardware and software.}
+%     \label{fig:machine_levels}
+% \end{figure}
+
+Two interfaces are critical to this model:
+\begin{description}
+    \item[Instruction Set Architecture (ISA) - Level 2] The ISA is the fundamental interface between hardware and software. It defines the processor's instruction set, registers, and memory model. The ISA has two components:
+    \begin{itemize}
+        \item \textbf{User ISA:} The set of non-privileged instructions available to application programs (e.g., arithmetic, logic, branch operations).
+        \item \textbf{System ISA:} The set of privileged instructions available only to the operating system (OS) for managing hardware resources (e.g., I/O, memory management).
+    \end{itemize}
+    \item[Application Binary Interface (ABI) - Level 3] The ABI is the interface an application program uses to interact with the system. It consists of the User ISA plus the set of \textbf{System Calls} that allow the program to request services from the OS, which in turn interacts with the hardware.
+\end{description}
+
+\section{Virtualization: Creating Abstract Machines}
+
+\textbf{Virtualization} is the creation of a logical, abstract execution environment—a \textbf{Virtual Machine (VM)}—that is decoupled from the underlying physical hardware. A VM provides software with a complete, functional machine interface while mapping its virtual resources and states to the corresponding physical ones.
+
+There are two primary categories of Virtual Machines:
+\begin{description}
+    \item[System VMs] A System VM provides a complete system environment that emulates an entire hardware platform. It is capable of running a full, unmodified guest operating system. The software that creates and manages System VMs is known as a \textbf{Virtual Machine Monitor (VMM)} or \textbf{Hypervisor}.
+    \item[Process VMs] A Process VM, also known as a High-Level Language VM, provides a platform-independent environment for a single process. It does not run a full OS but instead relies on runtime software to translate its abstract instructions into native instructions for the host OS. The most well-known example is the \textbf{Java Virtual Machine (JVM)}.
+\end{description}
+
+\subsection{Properties of Virtualization}
+The ability to create VMs bestows four powerful properties that are the bedrock of cloud computing:
+\begin{itemize}
+    \item \textbf{Partitioning:} Multiple VMs, potentially running different operating systems, can run on a single physical machine, partitioning the hardware resources among them.
+    \item \textbf{Isolation:} VMs are isolated from each other and from the host. A failure or security breach in one VM does not affect others. The hypervisor manages resource control to guarantee performance isolation.
+    \item \textbf{Encapsulation:} The entire state of a VM (memory, disk, configuration) can be saved as a single file. This makes it trivial to copy, move, and back up entire servers.
+    \item \textbf{Hardware Independence:} A VM presents a consistent, virtual hardware interface to the guest OS, regardless of the underlying physical hardware. This simplifies provisioning and migration.
+\end{itemize}
+
+\section{Implementing System Virtualization: Hypervisors}
+
+System VMs are the primary building blocks of modern Infrastructure as a Service (IaaS) clouds. They are managed by hypervisors, which can be deployed in two ways:
+
+\begin{description}
+    \item[Type 1 (Bare-Metal) Hypervisor] The hypervisor software runs directly on the host hardware, taking the place of a host OS. It has direct control over the hardware and is highly efficient and secure. This is the standard for production cloud environments. It can be implemented with a \textit{monolithic} architecture (device drivers are in the hypervisor) or a \textit{microkernel} architecture (drivers run in a privileged service VM).
+    \item[Type 2 (Hosted) Hypervisor] The hypervisor runs as an application on top of a conventional host operating system (e.g., VMware Workstation on Windows). It is easier to set up but incurs more performance overhead because it must share resources with the host OS.
+\end{description}
+
+% \begin{figure}[h!]
+%     \centering
+%     \includegraphics[width=0.8\textwidth]{page_48.png}
+%     \caption{Comparison of Type 1 (Bare-Metal) and Type 2 (Hosted) hypervisor architectures.}
+%     \label{fig:hypervisor_types}
+% \end{figure}
+
+To run a guest OS, the hypervisor must handle its privileged instructions. There are two main techniques for this:
+\begin{description}
+    \item[Full Virtualization] The hypervisor provides a complete simulation of the underlying hardware, allowing an unmodified guest OS to run. It uses a \textbf{trap-and-emulate} mechanism. When the guest OS attempts a privileged instruction, the CPU traps the operation and passes control to the hypervisor, which emulates the instruction's behavior safely. This process is greatly accelerated by \textbf{hardware-assisted virtualization} (e.g., Intel VT-x and AMD-V).
+    \item[Paravirtualization] The guest OS is modified to be aware it is virtualized. Instead of issuing privileged instructions, it makes direct "hypercalls" to the VMM. This collaboration reduces overhead and can improve performance but requires a specially adapted OS.
+\end{description}
+
+\section{Containers: OS-Level Virtualization}
+While System VMs provide strong hardware-level isolation, they have drawbacks, including significant resource overhead (each VM runs a full OS) and slow boot-up times. \textbf{Containers} offer a lightweight alternative by virtualizing at the operating system level.
+
+% \begin{figure}[h!]
+%     \centering
+%     \includegraphics[width=0.9\textwidth]{page_76.png}
+%     \caption{The key difference between Virtual Machines and Containers.}
+%     \label{fig:vm_vs_container}
+% \end{figure}
+
+The fundamental difference is that \textbf{all containers on a host share the host OS kernel}. Each container only packages its application code and its unique libraries and dependencies. This leads to major advantages:
+\begin{itemize}
+    \item \textbf{Lightweight and Fast:} Containers are smaller (megabytes vs. gigabytes) and can be launched in seconds.
+    \item \textbf{High Efficiency:} Eliminating the guest OS per application leads to much better resource utilization and higher server density.
+\end{itemize}
+
+\subsection{Docker: The Standard for Containerization}
+\textbf{Docker} has become the de facto standard for building and running containers. It solves a critical problem in software deployment: the inconsistency between different environments (development, testing, production). This is often called the \textit{"it worked on my computer"} problem.
+
+Using the analogy of the intermodal shipping container, which revolutionized global transport, Docker provides a standard unit for software delivery. An application is packaged with all its dependencies into a portable, self-sufficient \textbf{Docker image}. This image can then be run consistently as a \textbf{Docker container} on any machine with the Docker engine.
+
+\subsection{Container Orchestration: Managing at Scale}
+While Docker excels at managing single containers, deploying complex, multi-container applications in production requires an \textbf{orchestration} platform to handle tasks like scheduling, scaling, networking, and fault tolerance.
+
+\textbf{Kubernetes}, an open-source project started by Google, is the dominant container orchestration platform. It manages a cluster of nodes (physical or virtual machines) and automates the entire lifecycle of containerized applications.
+
+Key Kubernetes concepts include:
+\begin{itemize}
+    \item \textbf{Cluster:} A set of worker machines, called nodes, that run containerized applications.
+    \item \textbf{Control Plane (Master):} Manages the worker nodes and the Pods in the cluster. Components include the API Server, etcd (a key-value store for all cluster data), and the Scheduler.
+    \item \textbf{Node Components:} Each worker node runs a \textbf{Kubelet}, which is an agent that ensures containers are running in a Pod.
+    \item \textbf{Pod:} The smallest deployable unit in Kubernetes. A Pod represents a group of one or more co-located containers that share storage and network resources.
+\end{itemize}
+By abstracting away the underlying infrastructure, Kubernetes provides a robust and scalable platform for running modern, cloud-native applications.
