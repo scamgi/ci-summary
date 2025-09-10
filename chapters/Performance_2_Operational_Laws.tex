@@ -1,1 +1,150 @@
-bla bla bla.
+\chapter{Operational Laws}
+\label{chap:operational_laws}
+
+This chapter introduces a foundational technique for performance analysis known as \textbf{Operational Analysis}. Developed by Jeffrey Buzen and Peter Denning, this approach relies on a set of simple yet powerful equations called \textbf{Operational Laws}. These laws are derived from directly observable, measurable quantities and provide a robust way to analyze the average behavior of almost any system with minimal assumptions.
+
+\section{Principles of Operational Analysis}
+
+Operational laws are simple equations that model the average behavior of a system based on observable variables. Their power lies in their generality and simplicity:
+\begin{itemize}
+    \item \textbf{General:} They make almost no assumptions about the statistical distributions of the random variables (like arrival times or service times) that characterize the system. This makes them applicable to a very wide range of real-world scenarios.
+    \item \textbf{Simple:} The laws are easy to understand and can be applied quickly to gain valuable insights into system performance.
+\end{itemize}
+
+The analysis begins by observing a system for a finite period of time, $T$. During this interval, we measure the following fundamental quantities:
+\begin{itemize}
+    \item $T$: The length of the observation period.
+    \item $A$: The total number of request arrivals observed.
+    \item $C$: The total number of request completions (departures) observed.
+    \item $B$: The total amount of time the system was busy serving requests ($B \leq T$).
+\end{itemize}
+
+From these basic measurements, we can derive four crucial performance metrics:
+\begin{itemize}
+    \item \textbf{Arrival Rate ($\lambda$):} The rate at which requests arrive at the system.
+    \begin{equation}
+        \lambda = \frac{A}{T}
+    \end{equation}
+    \item \textbf{Throughput ($X$):} The rate at which the system completes requests. This is also known as the completion rate.
+    \begin{equation}
+        X = \frac{C}{T}
+    \end{equation}
+    \item \textbf{Utilization ($U$):} The fraction of time that the system is busy.
+    \begin{equation}
+        U = \frac{B}{T}
+    \end{equation}
+    \item \textbf{Mean Service Time ($S$):} The average time required to service a single request.
+    \begin{equation}
+        S = \frac{B}{C}
+    \end{equation}
+\end{itemize}
+
+A key assumption made in operational analysis is the principle of \textbf{job flow balance}, which states that the number of arrivals equals the number of completions during the observation period ($A = C$). This can be ensured by choosing a sufficiently long observation interval. Under this assumption, the arrival rate equals the throughput: $\lambda = X$.
+
+\section{The Utilization Law}
+The Utilization Law provides a direct relationship between the utilization of a resource, its throughput, and its mean service time. It is one of the simplest and most useful operational laws.
+
+It can be derived directly from the definitions above:
+\begin{equation}
+    X_k \cdot S_k = \frac{C_k}{T} \cdot \frac{B_k}{C_k} = \frac{B_k}{T} = U_k
+\end{equation}
+This gives us the \textbf{Utilization Law} for any resource $k$:
+\begin{equation}
+    U_k = X_k \cdot S_k
+\end{equation}
+The utilization of a resource is the product of its throughput and the average time it takes to service one request.
+
+\textit{Example:} A resource serves 40 requests/second ($X_k = 40$), and each request requires an average of 0.0225 seconds of service time ($S_k = 0.0225$). The utilization is:
+\begin{equation*}
+    U_k = 40 \, \text{req/s} \times 0.0225 \, \text{s/req} = 0.9 \implies 90\%
+\end{equation*}
+
+\section{Little's Law}
+Little's Law is a fundamental theorem in queueing theory that is remarkably general. It relates the average number of jobs in a system to its throughput and the average time a job spends in the system.
+
+The law can be applied to any system or subsystem in steady state. It is stated as:
+\begin{equation}
+    N = X \cdot R
+\end{equation}
+where:
+\begin{itemize}
+    \item $N$ is the average number of jobs in the system (both waiting and in service).
+    \item $X$ is the average throughput of the system.
+    \item $R$ is the average time a job spends in the system, known as the \textbf{residence time} or response time.
+\end{itemize}
+
+% \begin{figure}[h!]
+%     \centering
+%     \includegraphics[width=0.7\textwidth]{page_19.png}
+%     \caption{A graphical derivation of Little's Law. The area $W$ represents the total accumulated time in the system (in job-seconds) over the interval $T$. The average number of jobs is $N = W/T$, and the average residence time per job is $R = W/C$. Since $X = C/T$, it follows that $N = (C/T) \cdot (W/C) = X \cdot R$.}
+%     \label{fig:little_law_derivation}
+% \end{figure}
+
+\textit{Example:} A disk system has a throughput of 40 requests/second ($X = 40$). On average, there are 4 requests present in the system ($N = 4$), either waiting or being served. Using Little's Law, the average time a request spends at the disk is:
+\begin{equation*}
+    R = \frac{N}{X} = \frac{4 \, \text{req}}{40 \, \text{req/s}} = 0.1 \, \text{seconds}
+\end{equation*}
+If we know the average service time is $S = 0.0225$ seconds, we can deduce that the average waiting time in the queue is $R - S = 0.1 - 0.0225 = 0.0775$ seconds.
+
+\section{Operational Laws for Systems of Multiple Resources}
+
+Operational laws are particularly powerful when analyzing systems composed of multiple interconnected resources (e.g., a CPU and several disks).
+
+\subsection{Visits and the Forced Flow Law}
+In a complex system, a single job might visit a resource multiple times. We define the \textbf{visit count}, $V_k$, for a resource $k$ as the average number of times that resource is visited per system-level job completion.
+\begin{equation}
+    V_k = \frac{C_k}{C}
+\end{equation}
+where $C_k$ is the number of completions at resource $k$ and $C$ is the total number of system completions.
+
+The \textbf{Forced Flow Law} states that the throughput of any resource must be proportional to the throughput of the entire system.
+\begin{equation}
+    X_k = X \cdot V_k
+\end{equation}
+This law is essential for relating the performance of individual components to the performance of the system as a whole.
+
+\subsection{Service Demand}
+The \textbf{service demand}, $D_k$, is the total amount of service time a system job requires from resource $k$ across all its visits.
+\begin{equation}
+    D_k = S_k \cdot V_k
+\end{equation}
+Using the Forced Flow Law, we can reformulate the Utilization Law in terms of system-level throughput and service demand:
+\begin{equation}
+    U_k = X_k \cdot S_k = (X \cdot V_k) \cdot S_k = X \cdot (V_k \cdot S_k) \implies \boldsymbol{U_k = X \cdot D_k}
+\end{equation}
+
+\subsection{The General Response Time Law}
+The average response time of a system, $R$, can be computed by summing the time spent at each resource. The total time spent at resource $k$ is its \textbf{residence time}, $R_k$, which is the product of the number of visits, $V_k$, and the response time per visit, $\tilde{R}_k$.
+
+The \textbf{General Response Time Law} states that the total system response time is the sum of the residence times at all resources in the system.
+\begin{equation}
+    R = \sum_{k=1}^{M} R_k = \sum_{k=1}^{M} V_k \cdot \tilde{R}_k
+\end{equation}
+This allows us to calculate the overall system response time by analyzing each component individually.
+
+\subsection{The Interactive Response Time Law (for Closed Systems)}
+For interactive systems with a fixed number of users, $N$, who cycle between thinking and waiting for a response, we introduce the concept of \textbf{think time}, $Z$. This is the average time a user spends idle before submitting a new request. The total cycle time for a user is the sum of the system response time $R$ and the think time $Z$.
+
+Applying Little's Law to the entire closed system ($N = X \cdot (R+Z)$), we can derive the \textbf{Interactive Response Time Law}:
+\begin{equation}
+    R = \frac{N}{X} - Z
+\end{equation}
+This law is fundamental for analyzing the performance of time-sharing systems and interactive applications.
+
+% \begin{figure}[h!]
+%     \centering
+%     \includegraphics[width=0.8\textwidth]{page_34.png}
+%     \caption{Model of a closed interactive system, to which the Interactive Response Time Law applies.}
+%     \label{fig:interactive_system}
+% \end{figure}
+
+\section{Summary of Operational Laws}
+
+\begin{description}
+    \item[Utilization Law:] $U_k = X_k \cdot S_k = X \cdot D_k$
+    \item[Little's Law:] $N = X \cdot R$
+    \item[Forced Flow Law:] $X_k = X \cdot V_k$
+    \item[Interactive Response Time Law:] $R = N/X - Z$
+    \item[General Response Time Law:] $R = \sum_k V_k \cdot \tilde{R}_k = \sum_k R_k$
+\end{description}
+These laws provide a simple yet powerful toolkit for performance analysis, enabling us to deconstruct complex systems, analyze their components, and understand their aggregate behavior.
