@@ -1,1 +1,56 @@
-bla bla bla.
+\chapter{Performance Modeling and Introduction to Queueing Networks}
+
+This chapter, based on the lectures of Prof. Danilo Ardagna, introduces the fundamental concepts of performance modeling for computing infrastructures. We will explore why performance is a critical quality attribute, discuss various methods for its evaluation, and delve into the primary analytical tool used in this course: Queueing Network Theory.
+
+\section{Why Performance Matters}
+
+Computer performance is defined as the total effectiveness of a system, encompassing metrics such as throughput, individual response time, and availability. While system validation often focuses on "functional" requirements (i.e., does the system do what it's supposed to do?), non-functional "quality" requirements like performance are equally, if not more, critical to a system's success. Understanding these quality aspects early in the design lifecycle is paramount from both a cost and performance perspective.
+
+The real-world impact of performance is immense and can be directly tied to financial outcomes:
+\begin{itemize}
+    \item In 2006, \textbf{Amazon} discovered that an additional 100ms of latency in page load time resulted in a 1\% decrease in sales—a loss that would equate to \$3.8 billion today.
+    \item Around the same time, \textbf{Google} found that a 0.5-second delay in search page generation led to a 20\% drop in traffic.
+    \item In modern high-frequency trading, a broker's platform being just 5 milliseconds slower than a competitor's can lead to revenue losses of up to \$4 million per millisecond.
+\end{itemize}
+
+\subsection{Case Study: The 2016 Australian Census Failure}
+A telling example of performance failure is the Australian digital census of 2016. The Australian Bureau of Statistics (ABS) awarded IBM a \$9.6M contract to implement the online solution. Despite allocating funds for load testing, the system failed catastrophically on the night of the census.
+\begin{itemize}
+    \item \textbf{The Official Story:} The Office of Cybersecurity concluded that after withstanding an initial DDoS attack, the site was taken down by subsequent attacks.
+    \item \textbf{The Critical Analysis:} It is widely believed the system failed not due to attacks, but due to a fundamental architectural flaw. It was developed on IBM WebSphere and ran on IBM Softlayer, an on-premises cloud, which was not architected to handle the massive, predictable load of a national census.
+    \item \textbf{An Unexpected Turn of Events:} In a stark demonstration of modern cloud capabilities, two university students with no prior AWS experience developed a serverless system in one weekend for approximately \$500. Their system supported four times the load that the official IBM system was tested for. This case powerfully illustrates the critical importance of proper performance modeling, architecture selection, and load testing.
+\end{itemize}
+
+\section{Approaches to Evaluating System Quality}
+Given the complexity of modern systems, how can we evaluate their quality and performance?
+\begin{description}
+    \item[Intuition and Trend Extrapolation] This approach is rapid and flexible but relies on rare expertise and is often inaccurate.
+    \item[Experimental Evaluation] Using direct measurements, benchmarks, or prototypes yields excellent accuracy for a specific set of conditions. However, it is expensive, laborious, inflexible, and the results are difficult to generalize.
+    \item[Solution: The Model-Based Approach] This is the most effective and versatile solution. A model is an abstraction of a system that is simpler than the real thing but captures the essential characteristics necessary to predict its behavior. As stated by E. Lazowska, it is \textit{"an attempt to distill, from the details of the system, exactly those aspects that are essentials to the system behavior"}. Models are the primary artifacts used to drive design decisions, such as choosing an architecture or determining how many resources are needed to meet a performance goal.
+\end{description}
+
+\section{Introduction to Queueing Networks}
+The primary model-based approach used in this course is \textbf{Queueing Network (QN) modeling}. Queueing theory is the mathematical study of waiting lines, or queues. It applies whenever there are jobs (requests, users, transactions) competing for scarce resources (CPUs, disks, network links), leading to queues and delays.
+
+A QN model represents a computer system as a network of interconnected \textbf{service centers} (resources) through which \textbf{customers} (jobs) circulate. The great success of this technique is that the low-level details of a system are often irrelevant to its high-level performance characteristics, allowing for powerful predictions from relatively simple models.
+
+\subsection{The Anatomy of a Single Queue}
+A single service center is the basic building block of a queueing network. It is characterized by several components:
+\begin{itemize}
+    \item \textbf{Arrival Process:} Defines how customers enter the system. The key parameter is the average arrival rate, $\lambda$ (requests/sec).
+    \item \textbf{The Queue (Buffer):} Where customers wait if the server is busy. Its capacity can be finite or infinite. The \textbf{service discipline} determines the order in which customers are served (e.g., FCFS, LCFS, Priority).
+    \item \textbf{The Service Center (Server):} Represents the resource. It can contain a single server, a fixed number ($c$) of multiple servers, or an infinite number of servers. Its key parameter is the time it takes to process a job, the \textbf{service time}, whose average is $1/\mu$, where $\mu$ is the maximum service rate.
+    \item \textbf{The Population:} The source of customers. A population can be \textbf{infinite}, in which case the arrival rate is independent of the number of customers already in the system (an \textbf{Open Model}). Or, it can be \textbf{finite}, where a fixed number of customers, $N$, circulate within the system (a \textbf{Closed Model}).
+\end{itemize}
+
+\subsection{Types of Queueing Networks}
+Service centers are connected to form a network, which can be:
+\begin{description}
+    \item[Open Network] Characterized by external arrivals and departures from the system. A three-tier web application (Web Server $\rightarrow$ Application Server $\rightarrow$ DBMS) serving the public internet is a classic example.
+    \item[Closed Network] A fixed population of $N$ customers circulates continuously. This model is used for systems with a finite number of users, often incorporating a "think time" delay to represent the time a user spends before submitting the next request.
+    \item[Mixed Network] Contains both open and closed classes of customers.
+\end{description}
+The path that customers take through the network is defined by \textbf{routing} algorithms, which can be probabilistic, round-robin, or dynamic (e.g., join the shortest queue).
+
+\subsection{Level of Detail}
+An important aspect of modeling is choosing the right level of detail. A web server can be modeled as a single, abstract service center. Alternatively, it can be decomposed into a sub-network of its components (CPU, Disks, RAM, Caches). While more detail can provide more specific insights, parameterizing the model becomes significantly harder. A key principle of performance modeling is to proceed top-down: start with a simple model and only detail service centers as needed to answer the question at hand.
