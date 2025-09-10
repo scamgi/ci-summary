@@ -1,1 +1,84 @@
-bla bla bla.
+\chapter{Redundant Array of Independent Disks (RAID)}
+
+This chapter provides a comprehensive overview of RAID technology, a method for combining multiple physical disk drives into a single logical unit to improve performance, capacity, and reliability. We will explore the fundamental concepts behind RAID, detail the standard and nested RAID levels, and analyze their respective trade-offs.
+
+\section{Fundamental Concepts}
+
+\subsection{Motivation: Beyond Single Disks}
+While individual hard drives are effective persistent storage devices, they suffer from two primary shortcomings:
+\begin{itemize}
+    \item \textbf{Limited Capacity:} A single drive has a finite storage capacity.
+    \item \textbf{Limited Performance:} The I/O performance (transfer rate and number of operations per second) is constrained by the mechanical nature of a single disk.
+\end{itemize}
+RAID was developed in the 1980s to address these issues by creating large, high-performance logical disks from an array of smaller, independent physical disks.
+
+\subsection{Core Techniques: Striping and Redundancy}
+RAID leverages two orthogonal techniques to achieve its goals:
+\begin{description}
+    \item[Data Striping] To improve performance, data is broken down into units (bits, bytes, or blocks) called \textbf{stripe units}. These units are then written sequentially across the different disks in the array in a round-robin fashion. This parallelizes I/O operations, which can significantly increase the data transfer rate and decrease queueing time for multiple independent requests.
+    \item[Redundancy] To improve reliability, redundant information is stored across the array. This allows the system to tolerate the failure of one or more disks without losing data. This is crucial because as the number of disks in an array increases, the probability of a single disk failure also increases proportionally. The Mean Time To Failure (MTTF) of an array of N disks is approximately MTTF of a single disk divided by N.
+\end{description}
+
+\section{Standard RAID Levels}
+
+\subsection{RAID 0: Striping}
+\begin{itemize}
+    \item \textbf{Description:} Implements data striping with no redundancy. Data is split into blocks and written across all drives.
+    \item \textbf{Advantages:} Offers the highest performance (both read and write) and utilizes 100\% of the available disk capacity.
+    \item \textbf{Disadvantages:} Provides zero fault tolerance. If any single drive in the array fails, all data is lost.
+    \item \textbf{Use Case:} Non-critical applications where speed is the primary objective, such as temporary file storage or video editing scratch disks.
+\end{itemize}
+
+\subsection{RAID 1: Mirroring}
+\begin{itemize}
+    \item \textbf{Description:} Data is duplicated, with an identical copy written to one or more other disks. The basic configuration uses two disks, one mirroring the other.
+    \item \textbf{Advantages:} High reliability, as the system can withstand the failure of one disk. Read performance can be enhanced by retrieving data from the disk with the shorter queue or seek time.
+    \item \textbf{Disadvantages:} Very high cost, as 50\% of the total disk capacity is used for the mirror.
+    \item \textbf{Use Case:} Storing critical information, such as operating system drives or small databases, where reliability is paramount.
+\end{itemize}
+
+\section{Nested (Hybrid) RAID Levels}
+Nested RAID levels combine two standard levels to gain benefits from both.
+
+\subsection{RAID 0+1 vs. RAID 1+0 (RAID 10)}
+\begin{description}
+    \item[RAID 0+1] "A Mirror of Stripes". Data is first striped across a set of disks (RAID 0), and then this entire set is mirrored to an identical striped set. If a single disk fails, the entire stripe it belongs to is lost, and the system relies on the other mirror.
+    \item[RAID 1+0 (RAID 10)] "A Stripe of Mirrors". Disks are first paired into mirrored sets (RAID 1), and data is then striped across these mirrored pairs. This configuration is generally more fault-tolerant, as it can withstand the loss of one disk in each mirrored pair.
+\end{description}
+RAID 1+0 is more common and robust, making it a popular choice for databases and other high-performance, high-reliability applications.
+
+\subsection{The Consistent Update Problem}
+A critical issue in redundant arrays is ensuring that mirrored writes are \textbf{atomic}. A power failure during a write operation could leave one disk updated and the other out-of-sync. To prevent this, RAID controllers use a \textbf{write-ahead log} stored in battery-backed, non-volatile memory to guarantee that pending writes can be completed correctly after a power loss.
+
+\section{Parity-Based RAID}
+To provide redundancy without the 50\% capacity overhead of mirroring, parity-based RAID uses an error-correcting code (typically XOR) to calculate and store redundant information.
+
+\subsection{RAID 4: Dedicated Parity Drive}
+\begin{itemize}
+    \item \textbf{Description:} Data is striped across N-1 disks, and parity information for each stripe is calculated and stored on a single, dedicated parity disk.
+    \item \textbf{Advantages:} Good sequential read performance and high capacity efficiency (N-1)/N.
+    \item \textbf{Disadvantages:} The dedicated parity disk becomes a severe bottleneck for small, random write operations, as every write must access this single disk, causing serialization of I/O.
+\end{itemize}
+
+\subsection{RAID 5: Distributed Parity}
+\begin{itemize}
+    \item \textbf{Description:} Solves the RAID 4 bottleneck by distributing the parity blocks across all disks in the array. For each stripe, one disk stores the parity block while the others store data.
+    \item \textbf{Advantages:} Eliminates the write bottleneck of RAID 4, allowing for parallelized writes. It offers a good balance between performance, capacity, and reliability.
+    \item \textbf{Disadvantages:} Small random writes are still costly, as they require a read-modify-write cycle (reading the old data and old parity to calculate the new parity). Performance is degraded during a disk failure and rebuild.
+    \item \textbf{Use Case:} General-purpose storage, file servers, and application servers.
+\end{itemize}
+
+\subsection{RAID 6: Dual Parity}
+\begin{itemize}
+    \item \textbf{Description:} Extends RAID 5 by adding a second, independent parity block to each stripe (e.g., using Reed-Solomon codes).
+    \item \textbf{Advantages:} Extremely high fault tolerance, as it can withstand the simultaneous failure of any two disks in the array.
+    \item \textbf{Disadvantages:} Incurs a significant write penalty due to the computational overhead of calculating and writing two separate parity blocks. Requires a minimum of four disks.
+    \item \textbf{Use Case:} Archival systems and critical applications where high availability is essential and downtime must be avoided.
+\end{itemize}
+
+\section{Other Considerations}
+
+\begin{description}
+    \item[Hot Spares] Many RAID systems include a hot spare—an idle disk that is part of the system. If an active drive fails, the RAID controller can immediately begin rebuilding the data onto the hot spare, minimizing the window of vulnerability (MTTR).
+    \item[Hardware vs. Software RAID] RAID can be implemented in a dedicated hardware controller or in the operating system's software. Hardware RAID is faster and more reliable but is more expensive and can lead to vendor lock-in. Software RAID is cheaper and more flexible but consumes CPU cycles and is generally less performant.
+\end{description}
