@@ -1,1 +1,69 @@
-bla bla bla.
+\chapter{Advanced RAID Reliability and Recovery Models}
+
+This chapter provides a more detailed, visual examination of the error recovery processes for different RAID levels. Understanding these state transitions is crucial for appreciating the reliability and performance trade-offs inherent in each configuration.
+
+\section{Conceptual Model of RAID Reliability}
+
+The reliability of a redundant array is a significant improvement over a single disk, but it is not infinite. The overall Mean Time To Failure (MTTF) of the array depends on the MTTF of the individual disks and, critically, on the time it takes to repair or reconstruct the array after a failure.
+
+A simplified conceptual model can be considered, as illustrated in Figure \ref{fig:mttf_concept}. The array's survival depends on not having a second failure occur during the vulnerable period of the first failure's recovery. The total reliability is a function of the individual disk failure rates and the recovery time.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{page1.png} % Assuming you save the image as page1.png
+    \caption{Conceptual illustration of MTTF calculation for a redundant array.}
+    \label{fig:mttf_concept}
+\end{figure}
+
+\section{RAID 1 - Error Recovery State Machine}
+
+RAID 1 (Mirroring) provides fault tolerance by duplicating data on two or more disks. Its recovery process is straightforward but introduces a period of vulnerability and performance degradation. The state machine in Figure \ref{fig:raid1_recovery} illustrates this process.
+
+\begin{itemize}
+    \item \textbf{Normal State:} The array is fully functional with all disks operational.
+    \item \textbf{1st Disk Failure:} The array transitions to a \textbf{Recovery} state. It continues to operate using the mirrored copy on the remaining disk, but it is no longer redundant and performance may be degraded.
+    \item \textbf{Reconstruction:} Once the failed disk is physically replaced, the system enters the \textbf{Reconstruction} phase. During this time, data is copied from the surviving disk to the new one. The array is still vulnerable and operating at reduced performance.
+    \item \textbf{Unrecoverable Error:} If the second disk fails before the reconstruction of the first disk is complete, the array enters an unrecoverable error state, and all data is lost.
+\end{itemize}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.9\textwidth]{page2.png} % Assuming you save the image as page2.png
+    \caption{The error recovery state machine for a RAID 1 array.}
+    \label{fig:raid1_recovery}
+\end{figure}
+
+\section{RAID 6 - Complex Error Recovery}
+
+RAID 6 uses two independent parity blocks, allowing it to tolerate the failure of any two disks. This provides a much higher level of data protection, but its recovery procedure is significantly more complex, as shown in Figure \ref{fig:raid6_recovery}.
+
+\begin{itemize}
+    \item The array can withstand a \textbf{1st disk failure} and a subsequent \textbf{2nd disk failure} and still remain operational, albeit in a degraded state.
+    \item The reconstruction process is multi-staged. For example, if two disks have failed and one is replaced, the array enters a state of "1 disk reconstruction, 1 disk recovery."
+    \item An \textbf{unrecoverable error} only occurs upon the failure of a \textbf{3rd disk} before the array has been reconstructed to a state where it can again tolerate two failures.
+    \item Throughout all degraded states, the array operates with reduced performance due to the computational overhead of rebuilding data from parity on the fly.
+\end{itemize}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=1.0\textwidth]{page4.png} % Assuming you save the image as page4.png
+    \caption{The complex error recovery procedure for a RAID 6 array.}
+    \label{fig:raid6_recovery}
+\end{figure}
+
+\section{Nested RAID Example: RAID 0+1}
+
+Nested (or Hybrid) RAID levels combine two or more standard RAID levels to gain the benefits of both. Figure \ref{fig:raid01_config} shows a valid RAID 0+1 (also known as RAID 10) configuration.
+
+\begin{itemize}
+    \item \textbf{RAID 0 (Striping):} At the bottom level, data is striped across multiple disks to improve performance. The example shows two separate RAID 0 arrays.
+    \item \textbf{RAID 1 (Mirroring):} At the top level, one RAID 0 array is mirrored to the other, providing redundancy for the striped data.
+\end{itemize}
+This configuration provides the high performance of RAID 0 with the fault tolerance of RAID 1.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{page3.png} % Assuming you save the image as page3.png
+    \caption{A valid configuration for a nested RAID 0+1 array.}
+    \label{fig:raid01_config}
+\end{figure}

@@ -1,1 +1,72 @@
-bla bla bla.
+\chapter{SSD - Solid State Disks}
+
+This chapter provides a detailed examination of Solid State Disks (SSDs), a crucial component in modern computing infrastructure. We will cover their fundamental characteristics, internal organization, the performance challenges they face, and the sophisticated controller technologies designed to overcome these issues.
+
+\section{Overview of Solid State Disks}
+An SSD is a solid-state storage device that fundamentally differs from a traditional Hard Disk Drive (HDD).
+\begin{itemize}
+    \item \textbf{No Moving Parts:} Unlike the mechanical platters and actuator arms of an HDD, an SSD is built entirely out of transistors, much like computer memory and processors.
+    \item \textbf{Non-Volatile:} It is designed to retain information even when power is removed.
+    \item \textbf{High Performance:} By eliminating mechanical delays (seek time and rotational latency), SSDs offer significantly higher performance than HDDs.
+\end{itemize}
+While early SSDs used traditional HDD interfaces like SATA, modern drives increasingly use faster protocols like NVMe over a PCIe interface to maximize performance.
+
+\subsection{Market Trends: HDD vs. SSD}
+While HDDs still dominate the market in terms of total exabytes shipped and maintain a significant cost-per-terabyte advantage ($>\$10\text{x}$ cheaper), the total capacity of shipped SSDs is growing at a much faster rate. SSDs are becoming the standard for performance-sensitive applications, while HDDs remain the choice for bulk, low-cost storage.
+
+\section{Core Technology: NAND Flash Memory}
+The storage medium in an SSD is NAND flash, where data is stored by trapping electrical charges in floating-gate transistors.
+\begin{description}
+    \item[Cell Types] The density of storage is determined by the number of bits stored per cell:
+    \begin{itemize}
+        \item \textbf{SLC (Single-Level Cell):} 1 bit per cell. Highest performance, endurance, and cost.
+        \item \textbf{MLC (Multi-Level Cell):} 2 bits per cell. A balance of performance and cost.
+        \item \textbf{TLC (Triple-Level Cell):} 3 bits per cell. Lower cost and endurance, common in consumer drives.
+        \item \textbf{QLC/PLC (Quad/Penta-Level Cell):} 4 or 5 bits per cell. Highest density and lowest cost, but also the lowest endurance.
+    \end{itemize}
+\end{description}
+
+\subsection{Internal Organization: Pages and Blocks}
+NAND flash has a specific internal structure that dictates how data is managed:
+\begin{itemize}
+    \item \textbf{Pages:} The smallest unit that can be individually read or written (programmed). A typical page size is 4KB - 16KB.
+    \item \textbf{Blocks:} The smallest unit that can be erased. A block consists of multiple pages (e.g., 64 to 256).
+\end{itemize}
+This structure imposes three fundamental rules:
+\begin{enumerate}
+    \item Data can be read or written at the page level.
+    \item Data can only be \textbf{erased} at the block level.
+    \item A page cannot be directly overwritten; it must first be erased. This means to change even one byte in a block, the entire block must be erased and rewritten.
+\end{enumerate}
+
+\section{SSD Performance Challenges}
+The unique rules of NAND flash operation lead to significant performance challenges that are not present in HDDs.
+
+\subsection{Write Amplification}
+This is the most critical performance issue in SSDs. \textbf{Write Amplification} is the phenomenon where the actual amount of data physically written to the flash memory is a multiple of the logical amount of data the host intended to write.
+
+This occurs because to update even a single page, the SSD controller might have to:
+\begin{enumerate}
+    \item Read the entire block containing the page into a cache.
+    \item Update the page data in the cache.
+    \item Erase the original block on the flash memory.
+    \item Write the entire updated block from the cache back to the flash.
+\end{enumerate}
+This process turns a small logical write into a much larger physical read-erase-write cycle, which degrades performance and reduces the lifespan of the drive. As an SSD fills up, the effect of write amplification becomes more pronounced, leading to significant performance degradation over time.
+
+\subsection{Flash Cell Wear-Out}
+The process of erasing a block applies a high voltage to the flash cells, which slowly degrades the oxide layer that traps the charge. Each block can only endure a finite number of program/erase (P/E) cycles before it becomes unreliable and can no longer retain data.
+\begin{itemize}
+    \item \textbf{Endurance Rating (TBW):} An SSD's lifespan is rated in \textbf{Terabytes Written (TBW)}, which is the total amount of data that can be written to the drive before it is likely to fail.
+\end{itemize}
+
+\section{The Flash Translation Layer (FTL)}
+The \textbf{Flash Translation Layer (FTL)} is a sophisticated firmware layer running on the SSD's onboard controller. Its job is to manage the complexities of NAND flash and present a simple, standard block device interface (like an HDD) to the host operating system. The FTL is responsible for several critical tasks:
+
+\begin{description}
+    \item[Address Translation] Maps the Logical Block Addresses (LBAs) from the OS to the physical page addresses within the NAND flash.
+    \item[Garbage Collection] The process of reclaiming blocks that contain stale or "dirty" pages (data that has been deleted or updated). It finds blocks with a mix of valid and invalid data, copies the valid data to a new block, and then erases the old block, making it available for new writes. The \textbf{TRIM command} is crucial here, as it allows the OS to inform the FTL which pages are no longer in use, making garbage collection much more efficient.
+    \item[Wear Leveling] A set of algorithms that ensure writes are distributed evenly across all blocks in the SSD. This prevents certain blocks from being written to and erased excessively (which would cause them to fail prematurely), thereby maximizing the overall lifespan of the drive.
+\end{description}
+
+In summary, while SSDs offer a massive performance leap over HDDs, they are complex devices with unique challenges like write amplification and wear-out. The FTL is the key component that manages these issues, but its operations mean that real-world SSD performance can degrade over time and is often bottlenecked by the controller itself.

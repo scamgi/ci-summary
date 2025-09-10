@@ -1,1 +1,77 @@
-bla bla bla.
+\chapter{Server and Rack-Level Architecture}
+
+This chapter details the node-level hardware components of a Warehouse-Scale Computer (WSC), beginning with a high-level architectural overview and drilling down into the specifics of servers, their form factors, and the specialized hardware accelerators that are essential for modern, large-scale workloads like Artificial Intelligence.
+
+\section{Architectural Overview of a WSC}
+A Warehouse-Scale Computer is a cohesive system built upon four interdependent pillars:
+\begin{itemize}
+    \item \textbf{Servers:} The core computational units.
+    \item \textbf{Storage:} The data persistence layer, composed of devices like SSDs, HDDs, and tapes.
+    \item \textbf{Networking:} The datacenter network (DCN) that interconnects all components.
+    \item \textbf{Building and Infrastructure:} The physical facility providing power, cooling, and failure recovery. These elements are designed as a comprehensive, integrated system to support the massive scale of operation.
+\end{itemize}
+
+\section{Servers: The Main Processing Equipment}
+Servers are the fundamental building blocks of a data center. They are essentially powerful computers optimized for a client-server environment.
+
+\subsection{Server Components}
+A server is typically built around a motherboard which houses the main components:
+\begin{itemize}
+    \item \textbf{CPUs:} From 1 to 8 sockets for processors from families like Intel Xeon or AMD EPYC.
+    \item \textbf{RAM:} A large number of DIMM slots, supporting up to 192 modules in some configurations.
+    \item \textbf{Local Storage:} Bays for locally attached disks, either HDD or SSD, using interfaces like SAS or SATA.
+    \item \textbf{Special Purpose Devices:} Plug-in slots for hardware accelerators such as GPUs or TPUs.
+\end{itemize}
+A key design principle of WSCs is the use of a relatively \textbf{homogeneous hardware and software platform} to simplify management and deployment at scale.
+
+\subsection{Racks and Server Housing}
+Servers are housed in standardized shelves called \textbf{racks}. A rack is not just a physical cabinet; it is an integrated unit that also handles:
+\begin{itemize}
+    \item \textbf{Shared Power Infrastructure:} Including power delivery, conversion, and battery backup.
+    \item \textbf{Networking:} Often featuring a \textbf{Top-of-Rack (TOR)} switch to connect all the servers within that rack to the broader datacenter network.
+\end{itemize}
+The height of rack-mounted equipment is measured in rack units, or "U", where \textbf{1U = 44.45 mm (1.75 inches)}.
+
+\section{Server Form Factors}
+There are three primary server form factors, each with specific trade-offs.
+
+\begin{description}
+    \item[Tower Server] Resembles a traditional tower PC. It is cost-effective and easy to cool due to low component density, but it consumes a large amount of space and makes cable management difficult. Best suited for small businesses.
+    \item[Rack Server] Designed to be stacked vertically in a rack. This form factor is highly cost-effective in terms of computing density, simplifies cable management, and aids in failure containment. However, the high density increases power consumption and cooling requirements.
+    \item[Blade Server] The most compact and advanced form, where multiple server "blades" are inserted into a chassis that shares power, cooling, and networking. This provides excellent scalability and centralized management, but it comes at a higher initial cost, presents significant cooling challenges, and can lead to vendor lock-in.
+\end{description}
+
+\section{Hardware Accelerators for AI and HPC}
+The computational demands of modern AI models are doubling every 3.5 months, a rate that vastly outpaces Moore's Law. This has made specialized hardware accelerators essential components in WSCs.
+
+\subsection{Graphical Processing Units (GPUs)}
+GPUs are designed for data-parallel computation. Their architecture, consisting of thousands of simple cores, makes them exceptionally fast at the matrix and vector operations that are fundamental to deep learning.
+\begin{itemize}
+    \item They can be up to 1000x faster than CPUs for these tasks.
+    \item High-level programming languages like CUDA and OpenCL are required.
+    \item High-bandwidth interconnects like \textbf{NVLink} are used to connect multiple GPUs, enabling them to work together on training enormous models.
+\end{itemize}
+
+\subsection{Tensor Processing Units (TPUs)}
+TPUs are custom-built ASICs (Application-Specific Integrated Circuits) developed by Google specifically for machine learning workloads.
+\begin{itemize}
+    \item They are tailored for frameworks like TensorFlow and PyTorch.
+    \item They offer even greater performance-per-watt than GPUs for ML tasks.
+    \item Google has deployed multiple generations (from TPUv1 to the upcoming TPUv6), often arranging them in large clusters called "Pods" that act as ML supercomputers.
+\end{itemize}
+
+\subsection{Field-Programmable Gate Arrays (FPGAs)}
+FPGAs are programmable hardware devices that allow for the creation of custom logic circuits. They offer a balance between the flexibility of a CPU and the performance of an ASIC. In data centers, FPGAs are used for:
+\begin{itemize}
+    \item Network and Security Acceleration (e.g., offloading encryption).
+    \item Data Analytics and Machine Learning inference.
+\end{itemize}
+
+\section{Physical Datacenter Architecture: Airflow Management}
+The physical arrangement of racks is critical for efficient cooling. Datacenters employ a \textbf{Hot Aisle / Cold Aisle} configuration:
+\begin{itemize}
+    \item Racks are arranged in rows, with the fronts of the servers facing each other (cold aisle) and the backs of the servers facing each other (hot aisle).
+    \item Cold air is pumped into the cold aisle, drawn through the servers to cool the components.
+    \item The hot exhaust air is then expelled into the hot aisle, from which it is removed by the data center's cooling system.
+\end{itemize}
+This strategy prevents hot and cold air from mixing, dramatically improving cooling efficiency and preventing equipment from overheating.

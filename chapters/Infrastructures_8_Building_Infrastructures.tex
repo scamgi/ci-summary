@@ -1,1 +1,59 @@
-bla bla bla.
+\chapter{Building and Infrastructure of a Datacenter}
+
+This chapter focuses on the building-level hardware infrastructure of a Warehouse-Scale Computer (WSC). Beyond the servers, storage, and networking that handle data, a massive and complex physical plant is required to provide power, cooling, and failure recovery. These systems are critical to the datacenter's operation and represent a significant portion of its cost and complexity.
+
+\section{Physical Layout of a Datacenter}
+A modern datacenter is a highly specialized building, meticulously designed for efficiency and reliability. An aerial view of a large campus, like Google's in Iowa, reveals multiple server buildings, dedicated electrical substations, and a central utility building.
+
+A typical datacenter building's footprint is divided into three main areas:
+\begin{itemize}
+    \item \textbf{Main Server Hall ($\sim$47\%):} The core of the facility, housing the machine rows, network equipment, and operation areas. This is the "white space" where the IT equipment resides.
+    \item \textbf{Mechanical Yard ($\sim$31\%):} Contains the cooling infrastructure, including chillers and cooling towers.
+    \item \textbf{Electrical Yard ($\sim$22\%):} Houses the power infrastructure, such as transformers and backup generators.
+\end{itemize}
+
+\section{Datacenter Power Systems}
+Providing continuous, clean power is one of the most critical functions of a datacenter.
+\begin{description}
+    \item[Power Sources] Power is drawn from the utility grid and distributed through transformers. To protect against power failures, datacenters use a multi-layered backup system:
+    \begin{itemize}
+        \item \textbf{Batteries (UPS):} An Uninterruptible Power Supply (UPS) provides instantaneous power the moment the utility feed fails. The batteries bridge the gap (typically a few minutes) until the generators can start up. The UPS also "conditions" the power, smoothing out spikes and sags.
+        \item \textbf{Diesel Generators:} For longer outages, large diesel generators take over to supply power to the entire facility.
+    \end{itemize}
+\end{description}
+Datacenter power consumption is immense, reaching several megawatts, and is a major environmental and cost concern. Cooling alone can require about half the energy consumed by the IT equipment.
+
+\section{Datacenter Cooling Systems}
+IT equipment generates a tremendous amount of heat, making the cooling system a very expensive and essential component. The goal is to efficiently remove heat from the servers and exhaust it from the building.
+\begin{description}
+    \item[Hot/Cold Aisle Containment] To manage airflow, server racks are arranged in a \textbf{hot aisle / cold aisle} configuration. Racks are never placed back-to-back. Instead, cold air is supplied to the front of the racks (the cold aisle), flows through the equipment to cool it, and the hot exhaust is directed into a contained hot aisle. This prevents the mixing of hot and cold air, dramatically improving cooling efficiency.
+\end{description}
+
+\subsection{Cooling Topologies}
+\begin{itemize}
+    \item \textbf{Open-Loop (Fresh Air Cooling):} The simplest method, which uses outside air to cool the datacenter. While very energy-efficient, it doesn't work in all climates and requires extensive filtering.
+    \item \textbf{Closed-Loop:} The most common approach, where air is continuously recirculated within the datacenter. Heat is transferred from the air to a liquid (typically water) in a Computer Room Air Conditioning (CRAC) unit. This is often part of a larger multi-loop system:
+    \begin{enumerate}
+        \item \textbf{First Loop:} The air circuit on the data center floor.
+        \item \textbf{Second Loop:} Chilled water from the CRAC units is pumped to \textbf{chillers}, which are essentially large refrigerators.
+        \item \textbf{Third Loop:} The chillers transfer heat to a condenser water loop, which is then pumped to external \textbf{cooling towers} where the heat is finally discharged into the atmosphere through evaporation.
+    \end{enumerate}
+    \item \textbf{In-Rack and In-Row Cooling:} Newer approaches that move cooling closer to the heat source. An air-to-water heat exchanger is placed either at the back of a server rack or in a unit adjacent to the racks, reducing the distance hot air has to travel.
+    \item \textbf{Liquid Cooling:} The most advanced method for high-density computing.
+    \begin{itemize}
+        \item \textbf{Direct-to-Chip:} Liquid flows through "cold plates" mounted directly on high-power components like CPUs and GPUs (e.g., Google TPUs).
+        \item \textbf{Two-Phase Cooling:} A dielectric (non-conductive) liquid absorbs heat, causing it to boil into a vapor. The vapor then moves to a condenser where it releases its heat and turns back into a liquid, repeating the cycle.
+        \item \textbf{Immersive Cooling:} Servers are fully submerged in a non-conductive liquid, eliminating the need for fans and offering significant energy savings and noise reduction.
+    \end{itemize}
+\end{itemize}
+
+\section{Datacenter Efficiency and Tiers}
+\begin{description}
+    \item[Power Usage Effectiveness (PUE)] PUE is the standard metric for datacenter efficiency. It is the ratio of the total power consumed by the facility (including cooling, lighting, etc.) to the power delivered to the IT equipment.
+    \begin{equation}
+        PUE = \frac{\text{Total Facility Power}}{\text{IT Equipment Power}}
+    \end{equation}
+    An ideal PUE is 1.0. Modern hyperscale datacenters, like those run by Google, have achieved an average PUE of 1.10.
+    
+    \item[Datacenter Tiers] Availability is formally defined by a four-tier system, with each level having progressively more stringent requirements for redundancy and fault tolerance, from Tier 1 (99.671\% availability) to Tier 4 (99.995\% availability).
+\end{description}

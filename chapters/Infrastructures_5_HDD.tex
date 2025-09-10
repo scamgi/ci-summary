@@ -1,1 +1,68 @@
-bla bla bla.
+\chapter{Disk Abstraction and Hard Disk Drives (HDD)}
+
+This chapter covers the fundamental principles of disk storage, beginning with how an operating system abstracts the physical hardware and manages files. It then delves into the mechanical structure and performance characteristics of Hard Disk Drives (HDDs), including the sources of delay and the algorithms used to mitigate them.
+
+\section{Disk Abstraction and File Management}
+From the perspective of an Operating System (OS), a disk is not seen as a complex mechanical device, but as a simple linear collection of \textbf{data blocks}.
+
+\begin{description}
+    \item[Logical Block Address (LBA)] To manage these blocks, each one is assigned a unique numerical address, the LBA. This creates a simple, abstract address space for the OS to work with.
+    \item[Clusters] The OS groups one or more blocks into \textbf{clusters}. A cluster is the minimal unit of data that an OS can read from or write to a disk. A typical cluster size ranges from a single 512-byte sector to 128 sectors (64 KB).
+\end{description}
+
+\subsection{File Data and Metadata}
+Clusters on a disk contain two types of information:
+\begin{itemize}
+    \item \textbf{File Data:} The actual content of the files (e.g., text, images, executable code).
+    \item \textbf{Metadata:} Information that supports the file system itself. This includes file names, directory structures, timestamps, security permissions, and, most importantly, the \textbf{links to the LBAs where the file data is located on the disk}.
+\end{itemize}
+
+\subsection{Basic File Operations}
+\begin{description}
+    \item[Reading a File] This is a two-step process: (1) The OS first accesses the metadata to locate the LBAs of the clusters containing the file's data. (2) It then accesses those data clusters to read the content.
+    \item[Writing a File] Similarly, this requires: (1) Accessing metadata to find unused, free clusters. (2) Writing the new file data into those assigned clusters.
+    \item[Deleting a File] Deleting a file \textbf{does not actually erase the data}. The OS simply (1) updates the metadata to mark the clusters previously used by the file as free. The original data remains on the disk until it is overwritten by a new file.
+\end{description}
+
+\subsection{Fragmentation}
+The organization of files into clusters leads to two types of fragmentation:
+\begin{itemize}
+    \item \textbf{Internal Fragmentation:} Since the size of a file is rarely an exact multiple of the cluster size, the last cluster allocated to a file will contain unused space. This wasted space within a cluster is called internal fragmentation. For a file of size $s$ and a cluster of size $c$, the actual space occupied is $a = \lceil s/c \rceil \times c$, and the wasted space is $w = a - s$.
+    \item \textbf{External Fragmentation:} As files are created, modified, and deleted, the free space on the disk can become scattered into non-contiguous chunks. If a new file is too large to fit into any single chunk, the file system must split it across multiple locations. This phenomenon is called external fragmentation and can severely degrade the performance of an HDD.
+\end{itemize}
+
+\section{Hard Disk Drive (HDD) Architecture and Performance}
+An HDD is an electromechanical device that stores data on rotating magnetic platters.
+\begin{description}
+    \item[Anatomy] An HDD consists of one or more platters spinning on a spindle at a constant rate (measured in Revolutions Per Minute, RPM). A read-write head on a moving actuator arm accesses data from concentric circles on the platter called \textbf{tracks}. Each track is divided into \textbf{sectors} (typically 512 or 4096 bytes). A \textbf{cylinder} is the set of all tracks at a given arm position across all platters.
+\end{description}
+
+\subsection{Types of Delay in I/O Operations}
+The total time to service a disk request (\textbf{Service Time}) is the sum of four distinct delays:
+\begin{enumerate}
+    \item \textbf{Seek Time ($T_{seek}$):} The time required to move the read-write head to the correct track. This involves acceleration, coasting, deceleration, and settling of the arm.
+    \item \textbf{Rotational Delay ($T_{rotation}$):} The time it takes for the desired sector to rotate under the head. On average, this is the time for half a platter revolution. For a disk with a speed of RPM, the average rotational delay is:
+    \begin{equation}
+        T_{rotation\_AVG} = \frac{60}{RPM} \times \frac{1}{2}
+    \end{equation}
+    \item \textbf{Transfer Time ($T_{transfer}$):} The time to actually read or write the data from the sectors, dependent on RPM and data density.
+    \item \textbf{Controller Overhead ($T_{controller}$):} The electronic processing time of the on-disk controller.
+\end{enumerate}
+The total I/O service time is thus: $T_{I/O} = T_{seek} + T_{rotation} + T_{transfer} + T_{controller}$.
+
+\subsection{Data Locality}
+The calculation above represents a pessimistic case where every block access is random. In practice, files are often stored in contiguous blocks. \textbf{Data locality} is the percentage of blocks that can be accessed without incurring an additional seek or rotational delay. For a data locality of DL, the average service time can be modeled as:
+\begin{equation}
+    T_{I/O} = (1-DL) \times (T_{seek} + T_{rotation}) + T_{transfer} + T_{controller}
+\end{equation}
+
+\section{Disk Scheduling Algorithms}
+When multiple I/O requests are pending, their order can be changed to improve performance by minimizing total seek time.
+\begin{itemize}
+    \item \textbf{First Come, First Serve (FCFS):} The simplest algorithm. Requests are serviced in the order they arrive, which is often inefficient.
+    \item \textbf{Shortest Seek Time First (SSTF):} Services the request that is closest to the current head position. It is optimal for throughput but can lead to starvation of requests far from the head.
+    \item \textbf{SCAN (Elevator Algorithm):} The head sweeps back and forth across the disk, servicing all requests in its path. This prevents starvation but can have longer wait times for requests at the disk edges.
+    \item \textbf{C-SCAN (Circular SCAN):} Like SCAN, but only services requests in one direction. On reaching the end, the head jumps back to the beginning, providing a fairer, more uniform wait time.
+    \item \textbf{C-LOOK:} An optimization of C-SCAN where the head only travels as far as the last request in its path, rather than to the physical end of the disk.
+\end{itemize}
+These scheduling algorithms can be implemented in the OS or, more effectively, directly on the disk controller, which has precise knowledge of head position and platter rotation (e.g., Native Command Queuing - NCQ).

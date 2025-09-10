@@ -1,1 +1,68 @@
-bla bla bla.
+\chapter{Storage Systems: DAS, NAS, and SAN}
+
+This chapter provides a comparative overview of the three primary storage system architectures used in computing infrastructures: Direct Attached Storage (DAS), Network Attached Storage (NAS), and Storage Area Networks (SAN). We will define each system, analyze its architecture, and discuss its respective advantages, disadvantages, and typical application domains.
+
+\section{Core Storage Architectures}
+The fundamental difference between storage systems lies in how storage is connected to and presented to the servers or workstations that use it.
+
+\begin{description}
+    \item[Direct Attached Storage (DAS)] A storage system that is directly attached to a single server or workstation. From the perspective of the client's Operating System (OS), a DAS device is visible simply as a local disk or volume. This is the most straightforward storage model.
+    \item[Network Attached Storage (NAS)] A computer connected to a network that provides dedicated, file-based data storage services. It uses standard network protocols like FTP, Network File System (NFS), and SAMBA. To the client OS, a NAS is visible as a \textbf{File Server}.
+    \item[Storage Area Network (SAN)] A dedicated, high-speed network that connects remote storage units to servers. Unlike a NAS, a SAN provides \textbf{block-based} storage. This means that to the client OS, the remote storage appears as a local disk or volume, identical to how a DAS device is perceived.
+\end{description}
+
+\subsection{Architectural Comparison}
+The key distinction lies in where the file system resides and how the storage is accessed.
+\begin{itemize}
+    \item In a \textbf{DAS} setup, the application, file system, and disk storage are all local to the server.
+    \item In a \textbf{NAS} setup, the application runs on the client, but the file system and disk storage are managed by the NAS device and accessed over a standard TCP/IP network.
+    \item In a \textbf{SAN} setup, the application and file system run on the client server, but the underlying disk storage is a remote resource accessed over a dedicated storage network (e.g., Fibre Channel).
+\end{itemize}
+
+\section{Deep Dive into Each System}
+
+\subsection{Direct Attached Storage (DAS)}
+DAS refers to any storage that is not networked. This includes internal hard drives as well as external disks connected via a point-to-point protocol.
+\begin{description}
+    \item[Main Features:] It suffers from limited scalability and can be complex to manage across multiple systems. To share files, one must rely on the host OS's file-sharing protocols.
+    \item[Advantages:] It is very easy to set up, has a low initial cost, and offers high performance due to the direct, dedicated connection.
+    \item[Disadvantages:] Accessibility is limited to the attached host, scalability is poor, and it lacks any centralized management or backup capabilities.
+\end{description}
+
+\subsection{Network Attached Storage (NAS)}
+A NAS is a self-contained, specialized computer designed for sharing files over a network. Each NAS element has its own IP address.
+\begin{description}
+    \item[Main Features:] It offers good scalability, as one can either increase the capacity of existing NAS elements or add more NAS nodes to the network.
+    \item[Advantages:] High scalability, excellent accessibility for file sharing across multiple clients, and generally good performance.
+    \item[Disadvantages:] It increases traffic on the LAN, performance can become a bottleneck under heavy load, and it introduces additional security and reliability considerations.
+\end{description}
+
+\subsection{Storage Area Network (SAN)}
+A SAN is a high-performance network dedicated entirely to storage traffic, isolating it from the regular local area network.
+\begin{description}
+    \item[Main Features:] A SAN provides block-level access, meaning servers connected to it see the storage as locally attached disks. This allows the servers to format and manage the file systems themselves. SANs are highly scalable, as storage devices can be added to the dedicated network as needed.
+    \item[Advantages:] Improved performance due to the dedicated network, greater scalability than NAS or DAS, and improved availability and resilience.
+    \item[Disadvantages:] SANs are significantly more expensive and have a much more complex setup and maintenance process compared to the other storage models.
+\end{description}
+
+\section{Summary: DAS vs. NAS vs. SAN}
+The choice of storage architecture depends heavily on the specific needs of the application.
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{|p{0.15\textwidth}|p{0.3\textwidth}|p{0.25\textwidth}|p{0.25\textwidth}|}
+        \hline
+        \textbf{System} & \textbf{Application Domain} & \textbf{Advantages} & \textbf{Disadvantages} \\
+        \hline
+        \textbf{DAS} & Budget constraints, simple storage solutions & Easy setup, low cost, high performance & Limited accessibility, limited scalability, no central management \\
+        \hline
+        \textbf{NAS} & File storage and sharing, Big Data & Scalability, greater accessibility, good performance & Increased LAN traffic, potential performance limitations, security concerns \\
+        \hline
+        \textbf{SAN} & DBMS, virtualized environments (Datacenters!) & Improved performance, greater scalability, improved availability & High costs, complex setup and maintenance \\
+        \hline
+    \end{tabular}
+    \caption{Comparison of Storage System Architectures}
+    \label{tab:storage_comparison}
+\end{table}
+
+Traditionally, NAS is used for low-volume access by many users, while SAN is the solution for petabyte-scale storage and multiple, simultaneous access to files, such as in video streaming or high-transaction databases.
