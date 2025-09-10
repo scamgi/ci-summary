@@ -1,1 +1,77 @@
-bla bla bla.
+\chapter*{Extra: RAID Reliability and Error Recovery}
+\label{chap:extra_raid_reliability}
+
+This section provides a deeper analysis of the reliability aspects of RAID systems, moving beyond the static descriptions of fault tolerance to examine the dynamic process of error recovery and the quantitative metrics that govern system dependability.
+
+\section{Quantifying Reliability: Mean Time To Failure (MTTF)}
+
+As introduced in the Dependability chapters, the Mean Time To Failure (MTTF) is a fundamental metric for measuring the reliability of a component. For a single disk, this value represents the average operational time before a failure is expected.
+
+However, when multiple disks are combined into an array without redundancy (like RAID 0), the reliability of the system as a whole decreases significantly. The probability of any one disk failing increases with the number of disks. The MTTF of a simple N-disk array can be calculated as:
+
+\begin{equation}
+    MTTF_{Array} = \frac{MTTF_{SingleDisk}}{N}
+\end{equation}
+
+This formula underscores the critical need for redundancy. Without it, a 10-disk array would be 10 times less reliable than a single disk. The introduction of redundancy (mirroring or parity) is designed to create a system whose MTTF is substantially \textit{greater} than that of a single disk.
+
+% \begin{figure}[h!]
+%     \centering
+%     \includegraphics[width=0.7\textwidth]{page_1.png}
+%     \caption{Conceptual representation of how system MTTF changes with the number of non-redundant components.}
+%     \label{fig:mttf_concept}
+% \end{figure}
+
+\section{The Error Recovery Lifecycle}
+
+The true measure of a RAID system's reliability is not just its ability to withstand a failure, but its ability to recover from it. This process involves several distinct states. During the recovery and reconstruction phases, the array operates in a \textbf{degraded mode} with reduced performance and is vulnerable to further failures.
+
+\subsection{RAID 1 Error Recovery}
+
+RAID 1 (mirroring) provides a straightforward but effective recovery model. The process, illustrated in Figure \ref{fig:raid1_recovery}, involves a clear sequence of states.
+
+% \begin{figure}[h!]
+%     \centering
+%     \includegraphics[width=0.8\textwidth]{page_2.png}
+%     \caption{State diagram for the RAID 1 error recovery process.}
+%     \label{fig:raid1_recovery}
+% \end{figure}
+
+\begin{description}
+    \item[Normal State:] The array is fully protected, with data mirrored across all disks in the set.
+    \item[1st Disk Failure:] When one disk fails, the system transitions to a \textbf{Recovery} state. It continues to serve I/O requests from the remaining healthy disk, but redundancy is lost.
+    \item[Reconstruction:] After the failed disk is physically replaced, the system begins rebuilding the mirror by copying data from the source to the new disk. During this period, the array is still vulnerable.
+    \item[Unrecoverable Error:] If the second disk fails \textit{before} the reconstruction of the first is complete, all data is lost. The time taken to replace and rebuild the disk (the Mean Time To Repair, or MTTR) is therefore a critical window of vulnerability.
+\end{description}
+
+\subsection{RAID 6 Error Recovery}
+
+RAID 6 is designed to provide a much higher level of fault tolerance by using two independent parity schemes. This allows it to survive the failure of up to two disks simultaneously, making its recovery process more complex, as shown in Figure \ref{fig:raid6_recovery}.
+
+% \begin{figure}[h!]
+%     \centering
+%     \includegraphics[width=\textwidth]{page_4.png}
+%     \caption{The more complex error recovery state diagram for RAID 6.}
+%     \label{fig:raid6_recovery}
+% \end{figure}
+
+The key distinction from RAID 1 or RAID 5 is the system's behavior after a second failure.
+\begin{itemize}
+    \item After a \textbf{1st disk failure}, the system enters a degraded recovery state, similar to RAID 5.
+    \item If a \textbf{2nd disk fails} before the first is rebuilt, the array enters a more severely degraded state ("Recovery, 2 disks"). Crucially, it remains operational and the data is still accessible.
+    \item The system can then recover through various paths as disks are replaced one by one.
+    \item An \textbf{unrecoverable error} only occurs upon the failure of a \textbf{3rd disk} before the array has been restored to at least a single-failure state. This dramatically reduces the probability of data loss compared to single-parity RAID levels.
+\end{itemize}
+
+\section{Reliability of Nested RAID Configurations}
+
+The way RAID levels are combined also has significant implications for reliability. Figure \ref{fig:raid01_config} shows a RAID 0+1 configuration.
+
+% \begin{figure}[h!]
+%     \centering
+%     \includegraphics[width=0.9\textwidth]{page_3.png}
+%     \caption{An example of a valid RAID 0+1 (Mirror of Stripes) configuration.}
+%     \label{fig:raid01_config}
+% \end{figure}
+
+In this setup, a failure of any single disk in one of the RAID 0 sub-arrays will cause that entire sub-array to fail. The system's availability then depends entirely on the mirrored RAID 0 set. This is less resilient than a RAID 1+0 (Stripe of Mirrors) configuration, where the failure of a single disk only takes down one side of a mirrored pair, leaving the rest of the array unaffected. Therefore, while both RAID 10 and 01 offer a blend of performance and redundancy, RAID 10 is generally considered to have superior fault tolerance.
