@@ -1,1 +1,45 @@
-bla bla bla.
+\chapter{Summary of System Dependability}
+
+This summary encapsulates the key concepts from the lecture on System Dependability, delivered by Roberto Sala as part of the "Computing Infrastructures" course at Politecnico di Milano.
+
+\section{What is Dependability?}
+
+Dependability is defined as the measure of a system's trustworthiness. It is a comprehensive concept that encompasses several key attributes to ensure a system performs its intended function correctly and reliably.
+
+\begin{itemize}
+    \item \textbf{Reliability:} The ability of a system to provide continuous and correct service. It is concerned with the continuity of service.
+    \item \textbf{Availability:} The readiness of a system to perform its functions correctly when needed. It measures the probability that the system is operational at a given time.
+    \item \textbf{Maintainability:} The ease with which a system can be repaired, updated, or otherwise maintained.
+    \item \textbf{Safety:} The absence of catastrophic consequences for the users and the environment. This is crucial in systems where a failure could lead to harm.
+    \item \textbf{Security:} The protection of a system against unauthorized access, data breaches, and malicious attacks, ensuring the confidentiality and integrity of data.
+\end{itemize}
+
+\section{The Importance of Dependability}
+
+System failures can lead to significant negative consequences, including severe economic losses, physical damage, and irreversible loss of information. The importance of dependability varies depending on the system's application domain. Systems can be categorized based on the criticality of their function:
+
+\begin{itemize}
+    \item \textbf{Non-critical systems:} Failures in these systems, such as consumer products, typically result in economic or reputational damage.
+    \item \textbf{Mission-critical systems:} In these systems (e.g., satellites, surveillance drones), a failure can have serious and irreversible effects on the mission the system is designed to carry out.
+    \item \textbf{Safety-critical systems:} A failure in these systems, which include aircraft control systems and medical instrumentation, poses a direct and immediate threat to human life.
+\end{itemize}
+
+\section{How to Achieve Dependability}
+
+Dependability is not an accidental property; it must be a core consideration throughout a system's entire lifecycle, from the initial design phase through to runtime operation. There are two primary paradigms for achieving a dependable system:
+
+\begin{itemize}
+    \item \textbf{Failure Avoidance:} This proactive approach focuses on preventing faults from occurring in the first place. Techniques include conservative design choices, rigorous validation, detailed hardware and software testing, and error avoidance strategies.
+    \item \textbf{Failure Tolerance:} This reactive approach aims to ensure a system can continue to operate correctly even in the presence of faults. This is achieved through mechanisms like error detection, real-time (on-line) monitoring, system diagnostics, and self-repair capabilities.
+\end{itemize}
+
+\section{The Cost and Challenges of Dependability}
+
+Achieving high levels of dependability is not without its costs. There is an inherent trade-off, as enhancing dependability often requires greater financial investment and can lead to reduced system performance. The primary challenge is to find the optimal balance between dependability and its associated costs.
+
+Modern computing systems face several specific challenges in this area:
+\begin{itemize}
+    \item Designing robust systems from unreliable Commercial Off-The-Shelf (COTS) components.
+    \item Addressing new failure mechanisms introduced by technological advances (e.g., process variations in chip manufacturing).
+    \item Determining the right level of dependability by considering the application field, the operational environment, and the technologies used.
+\end{itemize}

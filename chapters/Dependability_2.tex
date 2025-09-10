@@ -1,1 +1,78 @@
-bla bla bla.
+\chapter{Reliability and Availability Analysis}
+
+This chapter delves into the core attributes of dependability, focusing on the quantitative analysis of Reliability and Availability. It also introduces Reliability Block Diagrams (RBDs) as a fundamental tool for modeling and calculating the reliability of complex systems.
+
+\section{Reliability vs. Availability}
+
+While often used interchangeably, reliability and availability represent two distinct viewpoints on a system's performance.
+
+\subsection{Reliability}
+Reliability, denoted as $R(t)$, is formally defined as the probability that a system or component will perform its required functions correctly under stated conditions for a specified period of time, $t$.
+\begin{equation}
+    R(t) = P(\text{not failed during } [0, t])
+\end{equation}
+This metric assumes the system was operational at $t=0$. Reliability is paramount in systems where even brief periods of incorrect behavior are unacceptable, such as in safety-critical applications or systems that are impossible to repair. The function $R(t)$ is non-increasing, starting at 1 and approaching 0 as time goes to infinity.
+
+\subsection{Availability}
+Availability, denoted as $A(t)$, is the probability that a system is operational and accessible at a specific moment in time, $t$.
+\begin{equation}
+    A(t) = P(\text{not failed at time } t)
+\end{equation}
+Unlike reliability, availability admits the possibility of brief outages, provided the system can be repaired. It is often expressed as the ratio of uptime to total time:
+\begin{equation}
+    \text{Availability} = \frac{\text{Uptime}}{\text{Uptime} + \text{Downtime}}
+\end{equation}
+For any repairable system, $A(t) \geq R(t)$. High-availability systems are often classified by the "number of nines," where 99.999\% ("five nines") availability corresponds to just over 5 minutes of downtime per year.
+
+\section{Key Performance Metrics}
+
+To quantify reliability and availability, several standard metrics are used:
+\begin{itemize}
+    \item \textbf{Mean Time To Failure (MTTF):} The expected time before a system experiences its first failure. For a system with reliability $R(t)$, the MTTF is the integral of the reliability function from 0 to infinity.
+    \begin{equation}
+        MTTF = \int_{0}^{\infty} R(t)dt
+    \end{equation}
+    \item \textbf{Mean Time Between Failures (MTBF):} The average time between two consecutive failures in a repairable system.
+    \item \textbf{Failure Rate ($\lambda$):} The frequency of failures. It is the reciprocal of MTBF for systems with a constant failure rate.
+    \item \textbf{Failures In Time (FIT):} The number of expected failures per one billion ($10^9$) hours of operation.
+\end{itemize}
+
+The failure rate of a system typically follows a pattern known as the \textbf{Bathtub Curve}, which consists of three phases:
+\begin{enumerate}
+    \item \textbf{Infant Mortality:} An initial high failure rate due to manufacturing defects.
+    \item \textbf{Useful Life:} A low, constant failure rate where random failures occur.
+    \item \textbf{Wear Out:} An increasing failure rate as components age and degrade.
+\end{enumerate}
+
+\section{The Fault-Error-Failure Chain}
+The process leading to a system failure is described by a specific sequence of events:
+\begin{itemize}
+    \item \textbf{Fault:} A defect or anomaly within a system (e.g., electromagnetic interference).
+    \item \textbf{Error:} A deviation from the correct state or required operation, caused by a fault (e.g., a wrong calculation).
+    \item \textbf{Failure:} The system's inability to perform its intended function.
+\end{itemize}
+It is crucial to understand that this chain is not always completed. A fault may not be activated, or an error may be absorbed or corrected by the system before it propagates to cause a visible failure.
+
+\section{Reliability Block Diagrams (RBDs)}
+
+RBDs are an inductive modeling technique used to calculate the overall reliability of a system based on the reliability of its individual components.
+
+\subsection{Series Systems}
+In a series configuration, all components must work for the system to be operational. The total system reliability is the product of the individual component reliabilities.
+\begin{equation}
+    R_S(t) = \prod_{i=1}^{n} R_i(t) = R_1(t) \times R_2(t) \times \dots \times R_n(t)
+\end{equation}
+For components with an exponential failure distribution, the system's failure rate is the sum of the individual failure rates ($\lambda_S = \sum \lambda_i$).
+
+\subsection{Parallel Systems}
+In a parallel configuration, the system functions as long as at least one of its components is working. This represents redundancy. The system reliability is calculated as:
+\begin{equation}
+    R_S(t) = 1 - \prod_{i=1}^{n} (1 - R_i(t))
+\end{equation}
+
+\subsection{Redundancy Models}
+RBDs can model more advanced redundancy schemes:
+\begin{itemize}
+    \item \textbf{Standby Redundancy:} A primary component is active, and a redundant (standby) component is activated only upon the failure of the primary.
+    \item \textbf{r-out-of-n (RooN) Redundancy:} A system with $n$ identical components that requires at least $r$ of them to function. A common implementation is \textbf{Triple Modular Redundancy (TMR)}, a 2-out-of-3 system, which can tolerate one component failure. TMR offers higher reliability for short missions but has a lower MTTF than a single component.
+\end{itemize}
