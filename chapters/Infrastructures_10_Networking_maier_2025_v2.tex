@@ -1,1 +1,97 @@
-bla bla bla.
+\chapter{Datacenter Networking}
+\label{chap:networking}
+
+This chapter provides a comprehensive overview of networking within modern computing infrastructures, a domain critical to the performance and scalability of Warehouse-Scale Computers (WSCs). We will trace the evolution of network demands, contrast classical and modern network architectures, and examine the innovative solutions deployed by hyperscale providers like Google. This content is based on the lectures of Prof. Guido Maier.
+
+\section{The Evolving Demands on Enterprise Networks}
+The architecture of datacenter networks (DCNs) has been driven by the evolution of the applications they support.
+\begin{description}
+    \item[Monolithic \& Client-Server Era] Early applications had minimal network demands. The client-server model increased traffic within the enterprise Local Area Network (LAN), but communication was primarily contained and followed a north-south pattern (client to server).
+    \item[Web Applications] The internet era brought ubiquitous TCP/IP and the need for access from anywhere. Servers began to be broken down into multiple tiers (web frontend, application, database), which started to increase server-to-server communication.
+    \item[Microservices and Cloud] The modern paradigm is characterized by applications decomposed into hundreds or thousands of independent microservices, often running in containers. This has caused a fundamental shift in traffic patterns. The vast majority of traffic is now \textbf{East-West traffic}—communication between servers within the datacenter—for tasks like storage replication, VM migration, and inter-service API calls. This intra-datacenter traffic dwarfs the traditional North-South (user-to-datacenter) traffic.
+\end{description}
+This explosion in East-West traffic has made the DCN one of the most critical and challenging components of a modern datacenter.
+
+\section{DCN Fundamentals and the Scalability Challenge}
+While it is relatively straightforward to scale compute and storage capacity by adding more servers and disks (horizontal scaling), networking does not scale as easily. The performance of the entire system is limited by the capacity of the network fabric that interconnects these components.
+
+The key metric for evaluating a DCN's capacity is its \textbf{bisection bandwidth}. This is the available bandwidth across the narrowest cut that divides the network's nodes (servers) into two equal halves. To prevent bottlenecks and support any-to-any communication patterns at scale, the bisection bandwidth must grow linearly with the number of servers. Achieving this in a cost-effective manner is the central challenge of DCN design.
+
+\section{Switch-Centric Architectures}
+DCNs can be classified into switch-centric, server-centric, and hybrid designs. We will focus on the dominant switch-centric paradigm, which uses dedicated switches for packet forwarding.
+
+\subsection{The Classical Three-Tier Network}
+For many years, the standard DCN topology was a hierarchical three-tier design.
+
+% \begin{figure}[h!]
+%     \centering
+%     \includegraphics[width=0.9\textwidth]{page_24.png}
+%     \caption{The classical three-tier DCN architecture, consisting of Access, Aggregation, and Core layers.}
+%     \label{fig:three_tier_network}
+% \end{figure}
+
+\begin{description}
+    \item[Access Layer] Composed of Top-of-Rack (ToR) switches that provide network connectivity to the servers within a single rack.
+    \item[Aggregation Layer] Connects and aggregates traffic from multiple access switches. Provides redundancy by having each access switch connect to at least two aggregation switches.
+    \item[Core Layer] Provides high-speed packet switching between aggregation blocks and serves as the gateway to the wider internet.
+\end{description}
+
+While simple, this architecture has severe limitations for modern workloads:
+\begin{itemize}
+    \item \textbf{East-West Bottlenecks:} Any communication between servers in different racks must travel "up" to the aggregation or core layer and back "down," creating choke points.
+    \item \textbf{Oversubscription:} The bandwidth of the uplinks from the access layer is typically much lower than the total bandwidth of the servers in the rack, leading to congestion.
+    \item \textbf{Inefficiency and Cost:} This model relies on the Spanning Tree Protocol (STP) to prevent loops, which disables redundant paths, wasting half of the available links. Furthermore, the upper tiers require progressively more powerful and expensive switching hardware.
+\end{itemize}
+
+\subsection{The Leaf-Spine Architecture (Clos Network)}
+To overcome the limitations of the three-tier model, modern datacenters have adopted the \textbf{Leaf-Spine} topology, a practical implementation of a Clos network, originally developed for telephone exchanges.
+
+% \begin{figure}[h!]
+%     \centering
+%     \includegraphics[width=0.7\textwidth]{page_33.png}
+%     \caption{The two-stage Leaf-Spine topology, designed for massive East-West bandwidth.}
+%     \label{fig:leaf_spine}
+% \end{figure}
+
+The Leaf-Spine architecture is a two-stage fabric with a simple set of rules:
+\begin{enumerate}
+    \item Servers only connect to Leaf switches.
+    \item Every Leaf switch is connected to every Spine switch.
+    \item There are no direct connections between Leaf switches or between Spine switches.
+\end{enumerate}
+
+This design offers significant advantages:
+\begin{itemize}
+    \item \textbf{Massive Bisection Bandwidth:} The fully interconnected fabric provides multiple paths between any two leaf switches. By using routing protocols that support Equal-Cost Multi-Path (ECMP), traffic can be load-balanced across all available links, creating a large, non-blocking network.
+    \item \textbf{Predictable, Low Latency:} Any communication between servers in different racks always traverses the same number of hops: leaf-to-spine-to-leaf.
+    \item \textbf{Scalability and Cost-Effectiveness:} The network is built using a homogeneous set of commodity switches. Capacity can be scaled easily by adding more spine switches (increasing bisection bandwidth) or adding more leaf switches (increasing the number of servers).
+\end{itemize}
+
+A highly scalable, multi-tiered implementation of this concept is known as a \textbf{Fat Tree}. It uses a "pod-based" model, where each pod is a self-contained leaf-spine unit, and multiple pods are interconnected by a higher "super-spine" tier. This architecture is used extensively by providers like Microsoft and Amazon.
+
+\section{Case Study: The Evolution of Google's Datacenter Network}
+Google's network provides a compelling example of hyperscale DCN design. Their approach has been to build massive, multi-stage Clos networks using custom hardware based on commodity switch silicon, all managed by a centralized SDN controller.
+
+% \begin{figure}[h!]
+%     \centering
+%     \includegraphics[width=\textwidth]{page_54.png}
+%     \caption{The evolution of Google's datacenter network bandwidth from 2004 to 2022, showing a 5000x increase.}
+%     \label{fig:google_dcn_evolution}
+% \end{figure}
+
+A key insight from Google is that traffic patterns within a datacenter are often highly predictable and follow a "gravity model" (traffic between two blocks is proportional to the product of their total traffic). Building a full-bisection Clos network for the theoretical worst-case (all-to-all random traffic) can be an expensive overkill.
+
+To address this, Google's recent network generations, like Jupiter, have introduced \textbf{Optical Circuit Switches (OCS)} as an interconnection layer. An OCS uses MEMS mirrors to steer light from any input fiber to any output fiber, creating a fully reconfigurable, direct optical mesh. This allows Google to:
+\begin{itemize}
+    \item Augment their packet-switched Clos network with direct, high-bandwidth optical paths between aggregation blocks.
+    \item Dynamically adapt the network topology to match real-time application communication patterns.
+    \item Remove the spine layer for certain connections, creating a more direct and efficient mesh.
+    \item Rapidly expand the fabric by simply plugging in new aggregation blocks and reconfiguring the optical paths.
+\end{itemize}
+
+\section{Other Network Architectures}
+While switch-centric designs are dominant, other paradigms exist:
+\begin{description}
+    \item[Server-centric] Architectures like \textbf{CamCube} propose using servers with multiple NICs to build the network fabric directly, often in a 3D-Torus topology. This can reduce costs but increases routing complexity and requires specialized server hardware.
+    \item[Hybrid] Architectures such as \textbf{DCell}, \textbf{BCube}, and \textbf{C-Through} use a combination of switches and servers for packet forwarding, aiming for a balance of cost, scalability, and performance. C-Through, for example, combines a traditional electrical packet network with a reconfigurable optical network to optimize traffic flow.
+\end{description}
