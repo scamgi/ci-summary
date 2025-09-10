@@ -1,1 +1,95 @@
-bla bla bla.
+\chapter{Software Infrastructures: Cloud Computing and Edge/Fog Computing}
+\label{chap:sw_infra_cloud}
+
+This chapter shifts the focus from the physical hardware of datacenters to the software paradigms that define modern computing services. We will explore the principles of Cloud Computing, its enabling technology of virtualization, the various service and deployment models, and the evolution towards Edge and Fog Computing to address the limitations of a purely centralized model.
+
+\section{What is Cloud Computing?}
+Cloud Computing is a model for enabling convenient, on-demand network access to a shared pool of configurable computing resources (e.g., networks, servers, storage, applications, and services). These resources can be rapidly provisioned and released with minimal management effort or service provider interaction.
+
+Key characteristics include:
+\begin{itemize}
+    \item A coherent, large-scale, publicly accessible collection of resources.
+    \item Availability via web service calls over the Internet.
+    \item A flexible, \textbf{pay-per-use} access model.
+\end{itemize}
+
+\subsection{The Problem with Traditional IT: Over-Provisioning}
+Before the cloud, organizations had to provision their own IT infrastructure based on a forecast of their peak load. This static approach is inherently inefficient, as illustrated in Figure \ref{fig:overprovisioning}.
+\begin{itemize}
+    \item \textbf{"Waste" (Over-provisioning):} During periods of normal or low load, the allocated IT capacity is much greater than the actual load, leading to significant waste of capital on underutilized hardware, power, and cooling.
+    \item \textbf{"Under-supply":} If the actual load unexpectedly exceeds the forecasted peak, the allocated capacity is insufficient. This results in poor performance, system failures, and lost business opportunities.
+\end{itemize}
+
+Cloud-provisioning solves this by allowing organizations to dynamically scale their resources up or down to precisely match the actual load, thereby reducing costs and improving performance.
+
+% \begin{figure}[h!]
+%     \centering
+%     \includegraphics[width=0.8\textwidth]{page_4.png}
+%     \caption{The inefficiency of static capacity allocation in traditional IT.}
+%     \label{fig:overprovisioning}
+% \end{figure}
+
+\section{The Enabling Technology: Virtualization}
+The foundation of cloud computing is \textbf{virtualization}. It is the process of partitioning and sharing physical hardware resources (CPU, RAM, etc.) among multiple, isolated \textbf{Virtual Machines (VMs)}. A software layer called a \textbf{Virtual Machine Monitor (VMM)} or \textbf{Hypervisor} runs directly on the hardware and governs the access of each VM to the physical resources.
+
+\subsection{Consequences of Virtualization: Server Consolidation}
+Virtualization has had a revolutionary impact on IT systems, primarily through \textbf{server consolidation}.
+\begin{description}
+    \item[Without Virtualization] Software was tightly linked to specific hardware. To isolate applications for reliability, the standard model was one application per server, leading to extremely low CPU utilization (typically 10-15\%) and low flexibility.
+    \item[With Virtualization] This paradigm introduces:
+    \begin{itemize}
+        \item \textbf{Hardware Independence:} Applications and operating systems, encapsulated within a VM, are no longer tied to specific hardware.
+        \item \textbf{Higher Utilization:} Multiple VMs can run concurrently on the same physical hardware, dramatically increasing utilization and reducing the number of physical servers needed. This leads to lower acquisition and management costs (power, cooling).
+        \item \textbf{Flexibility and Scalability:} VMs can be migrated between physical servers without downtime, enabling automatic load balancing and scaling.
+        \item \textbf{High Availability:} If a physical server fails, the VMs running on it can be automatically restarted on other available servers, protecting applications from hardware failure.
+    \end{itemize}
+\end{description}
+
+\section{Cloud Service Models (XaaS)}
+Cloud services are delivered in a layered stack, often referred to as "X-as-a-Service" (XaaS). Each layer provides a different level of abstraction, defining the division of responsibility between the cloud provider and the consumer.
+
+% \begin{figure}[h!]
+%     \centering
+%     \includegraphics[width=0.9\textwidth]{page_32.png}
+%     \caption{Division of management responsibility in SaaS, PaaS, and IaaS.}
+%     \label{fig:saas_paas_iaas}
+% \end{figure}
+
+\begin{description}
+    \item[Infrastructure as a Service (IaaS)] The most fundamental layer. The provider offers access to basic computing resources like VMs (e.g., Amazon EC2), storage (DaaS), and networking (CaaS). The consumer is responsible for managing the operating systems, middleware, and applications.
+    \item[Platform as a Service (PaaS)] The provider offers a complete development and deployment environment, including application runtimes, databases, and other tools, typically accessible via an API. The consumer is only responsible for their own application code. Examples include ML platforms like Amazon SageMaker or Microsoft Azure Machine Learning.
+    \item[Software as a Service (SaaS)] The provider offers ready-to-use, fully managed applications that consumers access via a web browser. The provider manages the entire technology stack. Examples include GMail, Google Docs, and Salesforce.com.
+\end{description}
+
+\section{Cloud Deployment Models}
+There are four primary ways to deploy cloud infrastructure:
+\begin{description}
+    \item[Public Cloud] The cloud infrastructure is provisioned for open use by the general public. It exists on the premises of the cloud provider (e.g., AWS, Azure, Google Cloud).
+    \item[Private Cloud] The cloud infrastructure is provisioned for exclusive use by a single organization. It may be owned and managed by the organization itself or a third party, and can exist on or off premises.
+    \item[Community Cloud] The infrastructure is shared by several organizations with common concerns (e.g., security requirements, compliance considerations).
+    \item[Hybrid Cloud] A composition of two or more distinct cloud infrastructures (private, community, or public). This model allows organizations to run steady-state workloads in a private cloud while retaining the ability to "burst" into a public cloud to handle unpredictable peaks in load.
+\end{description}
+
+\section{From Cloud to Edge and Fog Computing}
+While powerful, the centralized nature of cloud computing presents several disadvantages:
+\begin{itemize}
+    \item It requires a constant, high-speed Internet connection.
+    \item The physical distance to the datacenter can introduce significant \textbf{latency}.
+    \item Centralizing vast amounts of data can create security and privacy concerns.
+    \item Sending massive amounts of raw data from sensors to the cloud can be prohibitively expensive.
+\end{itemize}
+
+The rise of the Internet of Things (IoT), Augmented Reality (AR), and autonomous systems has created a need for real-time responses and context-awareness that a centralized cloud cannot always provide. This has driven the development of \textbf{Edge and Fog Computing}.
+
+\begin{description}
+    \item[Definition:] Edge and Fog Computing is a distributed computing paradigm that brings computation and data storage closer to the sources of data.
+    \item[Architecture:] It establishes an intermediate \textbf{Fog} layer of compute resources (e.g., local servers, gateways) between the \textbf{Edge} devices (e.g., IoT sensors, smartphones) and the centralized \textbf{Cloud}. This layer can perform initial data processing, filtering, caching, and basic analytics locally.
+    \item[Benefits:] By processing data closer to the source, this model significantly reduces latency, decreases the load on the wide-area network, and enables a new class of time-sensitive, location-aware applications.
+\end{description}
+
+% \begin{figure}[h!]
+%     \centering
+%     \includegraphics[width=\textwidth]{page_55.png}
+%     \caption{The hierarchical architecture of Edge, Fog, and Cloud Computing.}
+%     \label{fig:edge_fog_cloud}
+% \end{figure}
