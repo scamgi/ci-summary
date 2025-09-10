@@ -1,1 +1,108 @@
-bla bla bla.
+\chapter{RAID: Redundant Arrays of Independent Disks}
+
+This chapter moves beyond single-disk systems to explore RAID (Redundant Arrays of Independent Disks), a foundational technology in data storage. RAID addresses the inherent limitations of individual disks in terms of capacity, performance, and reliability by combining multiple physical disks into a single, high-performance logical unit. We will examine the two core techniques behind RAID—data striping and redundancy—and provide a detailed analysis of the most common RAID levels.
+
+\section{Beyond Single Disks: The Motivation for RAID}
+While hard drives are effective persistent storage devices, they present two major shortcomings when used individually in large-scale systems:
+\begin{itemize}
+    \item \textbf{Limited Capacity:} A single drive has a finite size. Managing data across a collection of separate physical devices is cumbersome and inefficient.
+    \item \textbf{Limited Performance:} The mechanical nature of a single HDD imposes physical limits on data access speeds (I/O operations per second and transfer rates).
+\end{itemize}
+RAID was proposed in the 1980s to overcome these limitations by treating several independent disks as a single, large, high-performance logical disk. This is achieved through two orthogonal techniques.
+
+\subsection{Data Striping for Performance}
+\textbf{Data striping} is the process of distributing data sequentially across multiple disks. Data is broken down into units (bits, bytes, or blocks) called the \textbf{stripe unit} (or chunk size), and these units are written across the disks in a round-robin fashion.
+\begin{description}
+    \item[Stripe Unit:] The dimension of the data unit written to a single disk.
+    \item[Stripe Width:] The number of disks across which the data is striped.
+\end{description}
+Striping improves performance by enabling parallelism:
+\begin{enumerate}
+    \item \textbf{Multiple independent I/O requests} can be executed in parallel by different disks, decreasing the overall queue length and wait time.
+    \item A \textbf{single large I/O request} can be split across multiple disks, dramatically increasing the effective transfer rate for that request.
+\end{enumerate}
+
+\subsection{Redundancy for Reliability}
+While adding more disks to an array increases its overall capacity and potential performance, it also increases the probability of a failure. If an array has $N$ disks, the probability of one of them failing is roughly $N$ times higher than for a single disk. This makes a large, non-redundant array highly unreliable.
+
+\textbf{Redundancy} is the technique of adding extra information to the disk array that can be used to reconstruct data in the event of a disk failure. This is the "R" in RAID and is the main motivation for its introduction.
+
+\section{Standard RAID Levels}
+Different methods of combining striping and redundancy have led to a set of standard configurations known as RAID levels. We will focus on the most common architectures.
+
+\subsection{RAID 0: Striping}
+RAID 0 implements striping without any redundancy. Its sole purpose is to maximize performance and capacity.
+\begin{description}
+    \item[Features:] Requires a minimum of two drives. Data is striped across all disks in the array.
+    \item[Advantages:] Lowest cost, as no capacity is lost to redundancy. It offers the best write performance because there is no redundant information to update.
+    \item[Disadvantages:] Zero fault tolerance. The failure of a single disk results in the loss of all data in the array. Its reliability is inversely proportional to the number of disks ($MTTF_{Array} = MTTF_{SingleDisk} / N$).
+    \item[Application:] Used where performance and capacity are the primary concerns and data loss is not critical (e.g., temporary storage for video editing).
+\end{description}
+
+\subsection{RAID 1: Mirroring}
+RAID 1 focuses exclusively on redundancy. All data written to one disk is simultaneously duplicated (mirrored) onto a second disk.
+\begin{description}
+    \item[Features:] Requires a minimum of two drives. Provides a complete, redundant copy of all data.
+    \item[Advantages:] High reliability. If one disk fails, the second copy is immediately available. Read performance can be improved by retrieving data from the disk with the shorter queue or seek delay.
+    \item[Disadvantages:] High cost. 50\% of the total disk capacity is used for mirroring, making it the most expensive RAID level in terms of cost-per-gigabyte.
+    \item[Application:] Suitable for critical data, such as operating system disks or small databases where reliability is paramount.
+\end{description}
+
+\subsection{Nested RAID Levels: RAID 10 and RAID 01}
+Nested (or hybrid) RAID levels combine the features of RAID 0 and RAID 1 to gain both performance and redundancy.
+\begin{description}
+    \item[RAID 1+0 (or RAID 10): A Stripe of Mirrors.] Drives are first paired into mirrored sets (RAID 1), and then data is striped across these mirrored pairs (RAID 0). This is the most commonly used nested level. It offers higher fault tolerance, as it can sustain multiple drive failures provided that no single mirrored pair fails completely.
+    \item[RAID 0+1: A Mirror of Stripes.] Drives are first striped (RAID 0), and then the entire stripe set is mirrored. This configuration is less fault-tolerant. If any single drive fails, its entire stripe set becomes degraded. A subsequent failure in the other stripe set will cause the entire array to fail.
+\end{description}
+Both RAID 10 and 01 require a minimum of four drives and result in 50\% capacity utilization. RAID 10 is generally preferred for its superior fault tolerance and rebuild performance, making it a popular choice for high-performance databases.
+
+\subsection{RAID 4: Block-level Striping with Dedicated Parity}
+RAID 4 introduces a more space-efficient form of redundancy using \textbf{parity}. Data is striped across N-1 disks, and a single, dedicated disk is used to store parity information for each stripe. Parity is typically calculated using the XOR logical operation. If a drive fails, its data can be reconstructed by XORing the data from the remaining data disks with the parity block.
+\begin{description}
+    \item[Advantages:] High capacity efficiency (N-1 usable disks). Good read performance, as read requests can be parallelized across the data disks.
+    \item[Disadvantages:] The dedicated parity disk becomes a severe bottleneck for write operations. Every write requires an update to the parity disk, serializing all write operations and leading to terrible random write performance.
+\end{description}
+
+\subsection{RAID 5: Block-level Striping with Distributed Parity}
+RAID 5 solves the write bottleneck of RAID 4. Like RAID 4, it uses parity for redundancy, but instead of dedicating one disk to parity, the parity blocks are distributed (rotated) across all the disks in the array.
+\begin{description}
+    \item[Advantages:] Eliminates the RAID 4 write bottleneck, resulting in good random write performance. It offers an excellent balance of performance, capacity (N-1), and reliability.
+    \item[Disadvantages:] Write operations are still more complex than in RAID 0 or 1. A small write requires a "read-modify-write" sequence: the old data and old parity must be read before the new data and new parity can be written. This results in a "write penalty."
+    \item[Application:] A very common all-purpose RAID level for servers and NAS devices that need a good balance between cost, performance, and reliability.
+\end{description}
+
+\subsection{RAID 6: Dual Distributed Parity}
+RAID 6 enhances the fault tolerance of RAID 5 by adding a second, independent parity block for each stripe. This allows the array to withstand the simultaneous failure of up to \textbf{two} disks.
+\begin{description}
+    \item[Features:] Uses two different parity calculations (e.g., one XOR and one based on Reed-Solomon codes). The two parity blocks are distributed across all disks.
+    \item[Advantages:] Extremely high fault tolerance. This is critical for large arrays built with high-capacity disks, where the time to rebuild a single failed drive can be very long, leaving the array vulnerable to a second failure.
+    \item[Disadvantages:] A significant write penalty. A single logical write now requires three reads and three writes (read old data, read both old parities; write new data, write both new parities).
+    \item[Application:] Archival systems, large-scale storage, and environments where data integrity and availability are absolutely critical.
+\end{description}
+
+\section{Summary and Comparison}
+
+The choice of a RAID level involves a trade-off between performance, capacity, reliability, and cost.
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{|p{0.1\textwidth}|p{0.15\textwidth}|p{0.15\textwidth}|p{0.25\textwidth}|p{0.25\textwidth}|}
+        \hline
+        \textbf{RAID Level} & \textbf{Usable Capacity} & \textbf{Fault Tolerance} & \textbf{Advantages} & \textbf{Disadvantages} \\
+        \hline
+        \textbf{0} & 100\% (N) & 0 disks & Highest performance, low cost. & No data protection. \\
+        \hline
+        \textbf{1} & 50\% (N/2) & 1 disk per mirror & High reliability, good read performance. & High cost, inefficient capacity usage. \\
+        \hline
+        \textbf{5} & (N-1)/N & 1 disk & Good balance of performance, capacity, and cost. & Write penalty, degraded performance during rebuild. \\
+        \hline
+        \textbf{6} & (N-2)/N & 2 disks & High fault tolerance against two failures. & Significant write penalty, more complex controller. \\
+        \hline
+        \textbf{10} & 50\% (N/2) & At least 1 disk per mirror & High performance and high reliability. & High cost, same as RAID 1. \\
+        \hline
+    \end{tabular}
+    \caption{Comparison of Common RAID Levels (N = number of disks)}
+    \label{tab:raid_comparison}
+\end{table}
+
+In conclusion, RAID technology is a cornerstone of modern storage infrastructure, providing a flexible toolkit to design storage systems that meet specific application requirements for performance, data protection, and cost-effectiveness.
